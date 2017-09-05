@@ -1,0 +1,8 @@
+os
+time
+datetime
+numpy
+pandas
+pandas_datareader
+matplotlib
+bs4
