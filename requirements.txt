@@ -5,4 +5,7 @@ numpy
 pandas
 pandas_datareader
 matplotlib
+scikit-learn
+scipy
 bs4
+keras
