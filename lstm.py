@@ -59,7 +59,9 @@ def build_model(layers):
     model = Sequential()
 
     model.add(LSTM(
-        input_dim=layers[0],
+    #3D tensor with shape (batch_size, timesteps, input_dim)
+    # (Optional) 2D tensors with shape  (batch_size, output_dim).
+        input_shape=(layers[1], layers[0]),
         output_dim=layers[1],
         return_sequences=True))
     model.add(Dropout(0.2))
