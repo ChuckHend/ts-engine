@@ -55,24 +55,41 @@ def normalise_windows(window_data):
         normalised_data.append(normalised_window)
     return normalised_data
 
-def build_model(layers):
+# this needs to be finished
+def neuralArch(x_train, hiddenLayer, outLayer, timesteps):
+    timesteps = timesteps
+    return ((batch_size, input_dim))
+
+def build_model(x_train, timesteps, hidden1, hidden2=False, outLayer):
+    # outlayer is the number of predictions, days to predict
+    batch_size = x_train.shape[1]
+    input_dim = x_train.shape[2]
+
     model = Sequential()
 
     model.add(LSTM(
     #3D tensor with shape (batch_size, timesteps, input_dim)
     # (Optional) 2D tensors with shape  (batch_size, output_dim).
-        input_shape=(layers[1], layers[0]),
-        output_dim=layers[1],
+        #input_shape=(layers[1], layers[0]),
+        input_shape=(batch_size, timesteps, input_dim),
+        output_dim=batch_size, #this might be wrong or need to be variable
         return_sequences=True))
-    model.add(Dropout(0.2))
+    model.add(Dropout(0.2)) # what is dropout?
 
+    # stack a hidden layer
     model.add(LSTM(
-        layers[2],
+        hidden1,
         return_sequences=False))
     model.add(Dropout(0.2))
 
+    # stack another hidden layer
+    if not hidden2:
+        model.add(LSTM(
+                hidden2,
+                return_sequences=False))
+    
     model.add(Dense(
-        output_dim=layers[3]))
+        output_dim=outLayer))
     model.add(Activation("linear"))
 
     start = time.time()

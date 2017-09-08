@@ -67,7 +67,8 @@ def stock_plot(data):
     plt.show()
 
 def single_batch(data_adj,pred_len=1):
-
+    # uses all prior data to predict all future data points
+    # only select predict[0], first prediction. throw out the rest
     train_set_length = data_adj.shape[0]-(2*pred_len)+1
     train_set_width = data_adj.shape[1]
 
@@ -85,5 +86,8 @@ def single_batch(data_adj,pred_len=1):
 def unroll(data,sequence_length=24):
     result = []
     for index in range(len(data) - sequence_length):
+        # go to first row[index], select that row through -> sequence length 
         result.append(data[index: index + sequence_length])
+        # assign that selection to new array, all in the same row
+        # move on to the next row in data, repeat
     return np.asarray(result)
