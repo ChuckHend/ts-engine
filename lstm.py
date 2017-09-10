@@ -55,15 +55,19 @@ def normalise_windows(window_data):
         normalised_data.append(normalised_window)
     return normalised_data
 
-# this needs to be finished
-def neuralArch(x_train, hiddenLayer, outLayer, timesteps):
-    timesteps = timesteps
-    return ((batch_size, input_dim))
 
-def build_model(x_train, timesteps, hidden1, hidden2=False, outLayer):
+def build_model(x_train, timesteps, inlayer, hidden1, outLayer, hidden2=False, batch_size = None):
     # outlayer is the number of predictions, days to predict
-    batch_size = x_train.shape[1]
-    input_dim = x_train.shape[2]
+    # input_shape(batch size is the number of observations
+    # to run through before updating the weights
+    # timesteps is the length of times, or length of the sequences
+    # in each batch, input_dim is the number of features in each observation)
+
+    if hidden2:
+        layer1 = True
+    else: layer1 = False
+
+    input_dim = x_train.shape[-1]
 
     model = Sequential()
 
@@ -71,25 +75,30 @@ def build_model(x_train, timesteps, hidden1, hidden2=False, outLayer):
     #3D tensor with shape (batch_size, timesteps, input_dim)
     # (Optional) 2D tensors with shape  (batch_size, output_dim).
         #input_shape=(layers[1], layers[0]),
-        input_shape=(batch_size, timesteps, input_dim),
-        output_dim=batch_size, #this might be wrong or need to be variable
-        return_sequences=True))
-    model.add(Dropout(0.2)) # what is dropout?
+        input_shape=(timesteps, input_dim),
+        units = inlayer,
+        # output_dim=batch_size, #this might be wrong or need to be variable
+        return_sequences=True
+        ))
+    model.add(Dropout(0.5))
 
     # stack a hidden layer
     model.add(LSTM(
-        hidden1,
-        return_sequences=False))
-    model.add(Dropout(0.2))
+        units = hidden1,
+        return_sequences=layer1,
+        activation = 'tanh'))
+    model.add(Dropout(0.5))
 
     # stack another hidden layer
-    if not hidden2:
+    if hidden2:
         model.add(LSTM(
-                hidden2,
-                return_sequences=False))
-    
+                units = hidden2,
+                return_sequences=False,
+                activation = 'tanh'))
+        model.add(Dropout(0.5))
+
     model.add(Dense(
-        output_dim=outLayer))
+        units=outLayer))
     model.add(Activation("linear"))
 
     start = time.time()

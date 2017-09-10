@@ -4,30 +4,28 @@ Created on Thu Sep  7 15:30:04 2017
 
 @author: hende
 """
+import os
+os.chdir('/Users/ahendel1/documents/academics/4cast')
 
-import time
 import datetime as dt
-import numpy as np
-from numpy import newaxis
-import matplotlib.pyplot as plt
-import processStocks as sdp
-import pandas
 import pandas_datareader
+import numpy as np
 import featureEng as fe
 import processStocks as ps
+import lstm 
 
 
 #load data
 start = dt.datetime(1995,1,1)
 end   = dt.date.today()
-data = pandas_datareader.data.DataReader('ASTC','yahoo',start,end)
+data = pandas_datareader.data.DataReader('AAPL','yahoo',start,end)
 data.head()
 
 # add derivative features
 data = fe.derivative(data, fill_na = True)
 
 #normalise data
-data_n = sdp.normalize_stock_data(data)
+data_n = ps.normalize_stock_data(data)
 
 # training data
 prediction_time = 1 # day, how far the window shifts?
@@ -55,49 +53,44 @@ print("x_test", x_test.shape)
 print("y_test", y_test.shape)
 
 
-from keras.layers.core import Dense, Activation, Dropout
-from keras.layers.recurrent import LSTM
-from keras.models import Sequential
-import lstm 
-
-#Step 2 Build Model ### replace with function
-model = Sequential()
-
-model.add(LSTM(
-    input_shape=(None, x_train.shape[-1]),
-    units =50,
-    return_sequences=True))
-model.add(Dropout(0.2))
-
-model.add(LSTM(
-    100,
-    return_sequences=False))
-model.add(Dropout(0.2))
-
-model.add(Dense(
-    units=1))
-model.add(Activation('linear'))
-
-start = time.time()
-model.compile(loss='mse', optimizer='rmsprop')
-print('compilation time : {}'.format(time.time() - start))
-
-# assign the network architecture
-# timesteps should be the 'window' or 'sequence'?
-arch = lstm.neuralArch(hidden_layer = 50, outlayer = 1, 
-                       timesteps = 1,  x_train = x_train)
-
-
+#build model architecture
+model = lstm.build_model(x_train, timesteps=sequence_length, inlayer = 50,
+                         hidden1 = 100, hidden2=50, outLayer = 1)
+                         
 #Step 3 Train the model
 model.fit(
     x_train,
     y_train,
     batch_size=3028,
-    epochs=50,
+    epochs=1,
     validation_split=0.05)
 
 
 #Step 4 - Plot the predictions!
-predictions = lstm.predict_sequences_multiple(model, x_test, 50, 50)
-lstm.plot_results_multiple(predictions, y_test, 50)
+# predictions = lstm.predict_sequences_multiple(model, x_test, 50, 50)
 
+predictions = lstm.predict_point_by_point(model, x_test)
+
+# lstm.plot_results_multiple(predictions, y_test, 50)
+
+import sklearn.utils as sku
+
+
+def mape(y_true, y_pred): 
+    #mean absolute percentage error (MAPE)
+    y_true, y_pred = sku.check_array(y_true, y_pred)
+
+    ## Note: does not handle mix 1d representation
+    #if _is_1d(y_true): 
+    #    y_true, y_pred = _check_1d_array(y_true, y_pred)
+
+    return np.mean(np.abs((y_true - y_pred) / y_true)) * 100   
+                         
+
+from sklearn.metrics import mean_absolute_error
+
+mean_absolute_error(y_test, predictions)                         
+                         
+                         
+                         
+                         
