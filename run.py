@@ -25,7 +25,11 @@ data.head()
 data = fe.derivative(data, fill_na = True)
 
 #normalise data
+# TODO: find a better scaling method. should have -1:1 as range for tanh activation function
+# Also, consider normalizing based on the sequence_length population rather than all data
 data_n = ps.normalize_stock_data(data)
+data_n  = ps.z_score(data)
+
 
 # training data
 prediction_time = 1 # day, how far the window shifts?

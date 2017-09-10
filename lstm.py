@@ -8,8 +8,6 @@ from keras.models import Sequential
 import matplotlib.pyplot as plt
 
 
-#warnings.filterwarnings("ignore")
-
 def plot_results_multiple(predicted_data, true_data, prediction_len):
     fig = plt.figure(facecolor='white')
     ax = fig.add_subplot(111)
@@ -107,7 +105,8 @@ def build_model(x_train, timesteps, inlayer, hidden1, outLayer, hidden2=False, b
     return model
 
 def predict_point_by_point(model, data):
-    #Predict each timestep given the last sequence of true data, in effect only predicting 1 step ahead each time
+    #Predict each timestep given the last sequence of true data, 
+    # only predicting 1 step ahead each time
     predicted = model.predict(data)
     predicted = np.reshape(predicted, (predicted.size,))
     return predicted

@@ -2,20 +2,29 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def normalize_stock_data(data):
-    # ADJ data
+    ''' This function does not generalize well. It calls columns by name, so as 
+    new columns (features) are added to the dataset, this will not work. As of 
+    10-Sep-2017, already not working because I added derivative features'''
+    
     data_adj=data
 
     for i in range(0,data.index.shape[0]):
+        # take first row, convert date to ordinal form
         data_adj.loc[data.index[i],'Ordinal/1e6'] = data.index[i].to_pydatetime().toordinal()/1e6
+        # and add weekday field
         data_adj.loc[data.index[i],'Weekday']     = data.index[i].to_pydatetime().weekday()
 
-    # drop the non-normalized from new DF
-    data_adj=data.drop(data.columns[[0,1,2,3,4,5]], axis=1)
+    # drop the non-normalized from new DF (ie select the normalized fields)
+    # colNames = data.columns
+    
+    data_adj = data.drop(['Open','High','Low','Close','Adj Close', 'Volume'], axis = 1)
 
+    # make 'Adj' columns by diving adj close by 'close'
     data_adj['Adj'] = data['Adj Close']/data['Close']
 
+    # make an adj volume column
     data_adj['Adj Volume'] = data['Volume']
-    #data_adj['Adj Volume'] -= np.min(data_adj['Adj Volume'])
+    # divide the entire column by the max value in the column
     data_adj['Adj Volume'] /= np.max(data_adj['Adj Volume'])
 
     data_adj['Adj Close'] = data['Adj Close'] / data['Adj Close'][0]
@@ -47,6 +56,18 @@ def normalize_stock_data(data):
     data_adj=data_adj.drop(['Adj'], axis=1)
 
     return data_adj
+
+def z_score(data):
+    dates = data['Date']
+    # z-score method. Normalizes by 'column' of data frame.
+    data = data.apply(lambda x: (x - np.mean(x)) / np.std(x))
+    for i in range(0,data.index.shape[0]):
+        # take first row, convert date to ordinal form
+        data_adj.loc[data.index[i],'Ordinal/1e6'] = data.index[i].to_pydatetime().toordinal()/1e6
+        # and add weekday field
+        data_adj.loc[data.index[i],'Weekday']     = data.index[i].to_pydatetime().weekday()
+    
+    return data
 
 
 def stock_plot(data):
