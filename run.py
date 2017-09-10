@@ -39,10 +39,13 @@ testdatacut = testdatasize + sequence_length  + 1
 
 x_train = data_n[0:-prediction_time-testdatacut].as_matrix()
 y_train = data_n[prediction_time:-testdatacut  ]['Normalised Close'].as_matrix()
+y_train = data_n[prediction_time:-testdatacut  ]['Close'].as_matrix()
 
 # test data
 x_test = data_n[0-testdatacut:-prediction_time].as_matrix()
 y_test = data_n[prediction_time-testdatacut:  ]['Normalised Close'].as_matrix()
+y_test = data_n[prediction_time-testdatacut:  ]['Close'].as_matrix()
+
 
 # unroll
 x_train = ps.unroll(x_train,sequence_length)
