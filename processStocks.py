@@ -58,7 +58,7 @@ def normalize_stock_data(data):
     return data_adj
 
 def z_score(data):
-    dates = data['Date']
+    data_adj = data
     # z-score method. Normalizes by 'column' of data frame.
     data = data.apply(lambda x: (x - np.mean(x)) / np.std(x))
     for i in range(0,data.index.shape[0]):
@@ -66,7 +66,6 @@ def z_score(data):
         data_adj.loc[data.index[i],'Ordinal/1e6'] = data.index[i].to_pydatetime().toordinal()/1e6
         # and add weekday field
         data_adj.loc[data.index[i],'Weekday']     = data.index[i].to_pydatetime().weekday()
-    
     return data
 
 
