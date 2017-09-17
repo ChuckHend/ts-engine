@@ -5,6 +5,21 @@ Created on Thu Sep 14 13:57:32 2017
 @author: hende
 """
 import matplotlib.pyplot as plt
+import datetime as dt
+
+
+def plot_single(predicted, actual, ticker, data_set_category='test'):
+    d = dt.datetime.today() - dt.timedelta(days = len(actual))
+    d = d.year
+    plt.title('{} Predicted Stock Daily Close ({})'.format(ticker.upper(), 
+              data_set_category))
+    plt.plot(actual, label='Actual')
+    plt.plot(predicted, label='Predicted')
+    plt.ylabel('Daily Close')
+    plt.xlabel('{} to present '.format(d))
+    plt.legend()
+    plt.show()
+
 
 def plot_results_multiple(predicted_data, true_data, prediction_len):
     fig = plt.figure(facecolor='white')
@@ -46,4 +61,26 @@ def plot_full(predicted_data, true_data, prediction_len):
         plt.plot(padding + data, label='Prediction')
         plt.legend()
     plt.show()
-    
+
+#def plot_features(dataset, features_selected):
+#    features = list(range(0,len(dataset.columns)))
+#    i = 1
+#    # plot each column
+#    plt.figure()
+#    for group in groups:
+#    	plt.subplot(len(groups), 1, i)
+#    	plt.plot(values[:, group])
+#    	plt.title(dataset.columns[group], y=0.5, loc='right')
+#    	i += 1
+#    pyplot.show()
+#    
+def plot_features(dataset):
+    features = list(dataset.columns)
+    plt.figure()
+    i = 1
+    for feature in features:
+        plt.subplot(len(features), 1, i)
+        plt.plot(dataset[feature])
+        plt.title(feature, y=0.5, loc='center')
+        i +=1
+    plt.show()

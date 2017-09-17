@@ -1,9 +1,21 @@
 import time
 import numpy as np
-from numpy import newaxis
 from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.recurrent import LSTM
 from keras.models import Sequential
+
+
+
+def tscv(dataset,train=0.6, validation=0.2):
+    # 'test' set is the remainder of data after train and validation
+    rows = dataset.shape[0]
+    traincut = int(rows*train)
+    validationcut = int(rows*(train+validation))
+    
+    train = dataset[:traincut,:]
+    validation = dataset[traincut:validationcut,:]
+    test = dataset[validationcut:,:]
+    return train, validation, test
 
 
 def load_data(filename, seq_len, normalise_window):
@@ -14,9 +26,6 @@ def load_data(filename, seq_len, normalise_window):
     result = []
     for index in range(len(data) - sequence_length):
         result.append(data[index: index + sequence_length])
-
-    if normalise_window:
-        result = normalise_windows(result)
 
     result = np.array(result)
 

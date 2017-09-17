@@ -1,7 +1,19 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from pandas import DataFrame
 from pandas import concat
+
+
+def shape(dataset, n_in, features):
+    '''Shape data for LSTM input '''
+    shaped = dataset.reshape(dataset.shape[0], n_in, len(features))
+    return shaped
+
+def unshape(dataset):
+    '''Convert from LSTM to 2 dimensional '''
+    dim2 = dataset.shape[2] * dataset.shape[1]
+    unshaped = dataset.reshape((dataset.shape[0], dim2))
+    return unshaped
+
 
 # convert series to supervised learning
 def series_to_supervised(data, features, n_in=1, n_out=1, dropnan=True):
@@ -27,8 +39,6 @@ def series_to_supervised(data, features, n_in=1, n_out=1, dropnan=True):
     if dropnan:
         agg.dropna(inplace=True)
     return agg
-
-
 
 
 def single_batch(data_adj,pred_len=1):

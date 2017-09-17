@@ -13,7 +13,8 @@ import pickle
 import requests
 
 
-def get_single(ticker='AAPL' ,source='yahoo', 
+
+def get_single(ticker='AAPL', source='yahoo', 
                start_date=dt.datetime(1995,1,1), end_date=dt.date.today()):
     print('Getting stock data for {} from {}...'.format(ticker, source))
     try:
