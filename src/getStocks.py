@@ -12,7 +12,7 @@ import bs4 as bs
 import pickle
 import requests
 
-
+# def select_data_source
 
 def get_single(ticker='AAPL', source='yahoo', 
                start_date=dt.datetime(1995,1,1), end_date=dt.date.today()):
