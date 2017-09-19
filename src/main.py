@@ -12,8 +12,8 @@ from sklearn.preprocessing import MinMaxScaler
 ####TODO: reshaping so we can plot various n_in, n_out
 # model seems to work, but cant redim for plot
 ticker = 'unh'
-n_in = 10
-n_out = 10
+n_in = 20
+n_out = 40
 
 # load dataset
 # dataset = read_csv('stock_dfs/AMD.csv', header=0, index_col=0)
@@ -33,9 +33,9 @@ scaler = MinMaxScaler(feature_range=(0, 1))
 scaled = scaler.fit_transform(dataset)
 
 # frame as supervised learning
-reframed = ps.series_to_supervised(scaled, n_in=n_in, n_out=n_out, 
+reframedSave = ps.series_to_supervised(scaled, n_in=n_in, n_out=n_out, 
                                    features=features)
-
+reframed=reframedSave.copy()
 # create the list of features we dont want to predict
 # so take all features, less the one we want to predict
 dropList = list(features)
@@ -101,9 +101,10 @@ yhat = model.predict(test_X)
 test_X = ps.unshape(test_X)
 
 # invert scaling for forecast
-inv_yhat = concatenate((yhat, test_X[:, n_in:]), axis=1)
+inv_yhat = concatenate((yhat, test_X[:, 1:]), axis=1)
 inv_yhat = scaler.inverse_transform(inv_yhat)
 inv_yhat = inv_yhat[:,0]
+
 # invert scaling for actual
 test_y = test_y.reshape((len(test_y), 1))
 inv_y = concatenate((test_y, test_X[:, 1:]), axis=1)
@@ -111,9 +112,9 @@ inv_y = scaler.inverse_transform(inv_y)
 inv_y = inv_y[:,0]
 
 # plot unscaled
-visualize.plot_single(predicted=inv_yhat, actual=inv_y, ticker=ticker)
+# visualize.plot_single(predicted=inv_yhat, actual=inv_y, ticker=ticker)
 # plot scaled
-# visualize.plot_single(predicted=yhat, actual=test_y, ticker=ticker)
+visualize.plot_single(predicted=yhat[0], actual=test_y[0], ticker=ticker)
 
 # calculate RMSE
 rmse = sqrt(mean_squared_error(inv_y, inv_yhat))

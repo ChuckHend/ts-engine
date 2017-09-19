@@ -21,18 +21,6 @@ def plot_single(predicted, actual, ticker, data_set_category='test'):
     plt.show()
 
 
-def plot_results_multiple(predicted_data, true_data, prediction_len):
-    fig = plt.figure(facecolor='white')
-    ax = fig.add_subplot(111)
-    ax.plot(true_data, label='True Data')
-    #Pad the list of predictions to shift it in the graph to it's correct start
-    for i, data in enumerate(predicted_data):
-        padding = [None for p in range(i * prediction_len)]
-        plt.plot(padding + data, label='Prediction')
-        plt.legend()
-    plt.show()
-    
-
 def stock_plot(data):
     # convert to tuple for plotting
     data = (data,)
@@ -51,7 +39,6 @@ def stock_plot(data):
     plt.show()
     
 def plot_full(predicted_data, true_data, prediction_len):
-    import matplotlib.pyplot as plt
     fig = plt.figure(facecolor='white')
     ax = fig.add_subplot(111)
     ax.plot(true_data, label='True Data')
@@ -62,18 +49,7 @@ def plot_full(predicted_data, true_data, prediction_len):
         plt.legend()
     plt.show()
 
-#def plot_features(dataset, features_selected):
-#    features = list(range(0,len(dataset.columns)))
-#    i = 1
-#    # plot each column
-#    plt.figure()
-#    for group in groups:
-#    	plt.subplot(len(groups), 1, i)
-#    	plt.plot(values[:, group])
-#    	plt.title(dataset.columns[group], y=0.5, loc='right')
-#    	i += 1
-#    pyplot.show()
-#    
+    
 def plot_features(dataset):
     features = list(dataset.columns)
     plt.figure()
