@@ -20,6 +20,11 @@ def plot_single(predicted, actual, ticker, data_set_category='test'):
     plt.legend()
     plt.show()
 
+def plot_loss(history):
+    plt.plot(history.history['loss'], label='train')
+    plt.plot(history.history['val_loss'], label='validation')
+    plt.legend()
+    plt.show()
 
 def stock_plot(data):
     # convert to tuple for plotting

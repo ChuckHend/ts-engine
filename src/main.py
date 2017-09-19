@@ -1,6 +1,5 @@
 from math import sqrt
 from numpy import concatenate
-from matplotlib import pyplot
 from sklearn.metrics import mean_squared_error
 import featureEng as fe
 import processStocks as ps
@@ -12,8 +11,8 @@ from sklearn.preprocessing import MinMaxScaler
 ####TODO: reshaping so we can plot various n_in, n_out
 # model seems to work, but cant redim for plot
 ticker = 'unh'
-n_in = 20
-n_out = 40
+n_in = 1
+n_out = 1
 
 # load dataset
 # dataset = read_csv('stock_dfs/AMD.csv', header=0, index_col=0)
@@ -26,20 +25,27 @@ features = dataset.columns
 # Plot the features
 # visualize.plot_features(dataset)
 
-# normalize features
-# consider when to apply scaling
-# before or after series_to_supervised?
+# normalize or scale features
+''' consider when to apply scaling//before or after series_to_supervised?
+timeframe is important. do we want to scale based on entire dataset, or just
+based on the sequence length? for example, if we are predicting the next day's
+price based on the last 10 days activity, should the activity and target be scaled
+to the past 10 days, or to the entire dataset? or to something else? I would lean
+towards scaling to the sequence length (ie past 10 days) and include features that
+will have information related to the overall period'''
+'''could also convert simply to stationary'''
+ 
 scaler = MinMaxScaler(feature_range=(0, 1))
 scaled = scaler.fit_transform(dataset)
 
 # frame as supervised learning
-reframedSave = ps.series_to_supervised(scaled, n_in=n_in, n_out=n_out, 
+reframed = ps.series_to_supervised(scaled, n_in=n_in, n_out=n_out, 
                                    features=features)
-reframed=reframedSave.copy()
+
 # create the list of features we dont want to predict
 # so take all features, less the one we want to predict
 dropList = list(features)
-dropList.remove('Adj Close')
+dropList.remove('Close')
 
 # iterate over droplist, removing all columns in the droplist
 # for t....t+n...which will be t+n_in-1
@@ -52,13 +58,10 @@ for feature in dropList:
         reframed.drop(tfeat, axis=1, inplace=True)
         #print('dropped {}'.format(tfeat))
 
-#reframed.drop(['Open(t)', 'High(t)', 'Low(t)', 'Close(t)', 'Volume(t)',
-#               'd1close(t)', 'd2close(t)', 'd1vol(t)', 'd2vol(t)'],
-#    axis = 1, inplace=True)
- 
+
 # split into train, validation, test
 values = reframed.values
-train, test, validation = lstm.tscv(values)
+train, validation, test = lstm.tscv(values)
 
 # split into input and outputs
 # the last n columns are the output variable
@@ -79,22 +82,19 @@ print(train_X.shape, train_y.shape,
 
 model = lstm.build_model(train_X, 
                          timesteps=n_in, 
-                         inlayer=30,
-                         hidden1=10, 
-                         outLayer=n_out)
+                         inlayer=int(train_X.shape[-1]*1.5),
+                         hiddenlayers=[550], 
+                         outlayer=n_out)
 
-# fit network
+# fit network and save to history
 # low epocs for testing/debug
-history = model.fit(train_X, train_y, epochs=4, 
+history = model.fit(train_X, train_y, epochs=6, 
                     batch_size=100, 
                     validation_data=(X_validation, Y_validation), 
                     verbose=2, shuffle=False)
 # plot history
-pyplot.plot(history.history['loss'], label='train')
-pyplot.plot(history.history['val_loss'], label='test')
-pyplot.legend()
-pyplot.show()
- 
+visualize.plot_loss(history)
+
 # make a prediction
 yhat = model.predict(test_X)
 # convert back to 2d
@@ -112,13 +112,9 @@ inv_y = scaler.inverse_transform(inv_y)
 inv_y = inv_y[:,0]
 
 # plot unscaled
-# visualize.plot_single(predicted=inv_yhat, actual=inv_y, ticker=ticker)
+visualize.plot_single(predicted=inv_yhat, actual=inv_y, ticker=ticker)
 # plot scaled
-visualize.plot_single(predicted=yhat[0], actual=test_y[0], ticker=ticker)
-
-# calculate RMSE
-rmse = sqrt(mean_squared_error(inv_y, inv_yhat))
-print(rmse)
+#TODO: viz method. to plot the sequences...
 
 
 ###### TODO METHOD####

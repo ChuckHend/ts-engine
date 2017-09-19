@@ -43,31 +43,15 @@ def load_data(filename, seq_len, normalise_window):
     return [x_train, y_train, x_test, y_test]
 
 
-def build_model(x_train, timesteps, inlayer, hidden1, outLayer, hidden2=False, batch_size = None):
+def build_model(x_train, timesteps, inlayer, outlayer,
+                batch_size=None, hiddenlayers=0):
     # outlayer is the number of predictions, days to predict
     # to run through before updating the weights
     # timesteps is the length of times, or length of the sequences
     # in each batch, input_dim is the number of features in each observation)
-
-    ### WORKING 
-    
-#    model = Sequential()
-#    model.add(LSTM(30, input_shape=(train_X.shape[1], train_X.shape[2]),
-#              return_sequences=True, activation='tanh'))
-#    model.add(Dropout(0.5))
-#    model.add(LSTM(10, activation='tanh'))
-#    model.add(Dropout(0.5))
-#    model.add(Dense(1))
-#    model.compile(loss='mae', optimizer='adam')
-
-    if hidden2:
-        layer1 = True
-    else: layer1 = False
-
     input_dim = x_train.shape[-1]
-
     model = Sequential()
-
+    # input layer
     model.add(LSTM(
     #3D tensor with shape (batch_size, timesteps, input_dim)
     # (Optional) 2D tensors with shape  (batch_size, output_dim).
@@ -77,26 +61,28 @@ def build_model(x_train, timesteps, inlayer, hidden1, outLayer, hidden2=False, b
         # output_dim=batch_size, #this might be wrong or need to be variable
         return_sequences=True
         ))
-    model.add(Dropout(0.5))
-
-    # stack a hidden layer
-    model.add(LSTM(
-        units = hidden1,
-        return_sequences=layer1,
-        activation = 'tanh'))
-    model.add(Dropout(0.5))
-
-    # stack another hidden layer
-    if hidden2:
+    model.add(Dropout(0.3))    
+    print('building {} layers w/ {} nodes'.format(len(hiddenlayers),
+          hiddenlayers))
+    for layer in hiddenlayers:
+        print(layer)
         model.add(LSTM(
-                units = hidden2,
-                return_sequences=False,
-                activation = 'tanh'))
-        model.add(Dropout(0.5))
+                units=layer,
+                return_sequences=True,
+                activation='tanh'))
+        model.add(Dropout(0.3))
 
+    lastlayer=int((inlayer+outlayer)/2)
+    # stack last layer
+    model.add(LSTM(
+            units = lastlayer,
+            return_sequences=False,
+            activation = 'tanh'))
+    model.add(Dropout(0.3))
+    # output node    
     model.add(Dense(
-        units=outLayer))
-    model.add(Activation("tanh"))
+        units=outlayer,
+        activation='linear'))
 
     start = time.time()
     model.compile(loss="mae", optimizer="adam")
