@@ -64,22 +64,20 @@ def build_model(x_train, timesteps, inlayer, outlayer,
     model.add(Dropout(0.3))    
     print('building {} layers w/ {} nodes'.format(len(hiddenlayers),
           hiddenlayers))
-    for layer in hiddenlayers:
-        print(layer)
+    
+    #true by default
+    seq=True
+    for y, layer in enumerate(hiddenlayers):
+        lastlayr=len(hiddenlayers)-1
+        if y==lastlayr:
+            seq=False
         model.add(LSTM(
                 units=layer,
-                return_sequences=True,
+                return_sequences=seq,
                 activation='tanh'))
         model.add(Dropout(0.3))
 
-    lastlayer=int((inlayer+outlayer)/2)
-    # stack last layer
-    model.add(LSTM(
-            units = lastlayer,
-            return_sequences=False,
-            activation = 'tanh'))
-    model.add(Dropout(0.3))
-    # output node    
+    # output node   
     model.add(Dense(
         units=outlayer,
         activation='linear'))
@@ -88,5 +86,4 @@ def build_model(x_train, timesteps, inlayer, outlayer,
     model.compile(loss="mae", optimizer="adam")
     print("Compilation Time : ", time.time() - start)
     return model
-
 

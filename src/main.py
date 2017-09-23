@@ -1,6 +1,9 @@
 from math import sqrt
 from numpy import concatenate
 from sklearn.metrics import mean_squared_error
+
+import os
+os.chdir('c:/Users/hende/onedrive/analytics/finance/4cast/src')
 import featureEng as fe
 import processStocks as ps
 import lstm
@@ -10,7 +13,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 ####TODO: reshaping so we can plot various n_in, n_out
 # model seems to work, but cant redim for plot
-ticker = 'unh'
+ticker = 'abc'
 n_in = 1
 n_out = 1
 
@@ -35,7 +38,7 @@ towards scaling to the sequence length (ie past 10 days) and include features th
 will have information related to the overall period'''
 '''could also convert simply to stationary'''
  
-scaler = MinMaxScaler(feature_range=(0, 1))
+scaler = MinMaxScaler(feature_range=(-1, 1))
 scaled = scaler.fit_transform(dataset)
 
 # frame as supervised learning
@@ -82,13 +85,13 @@ print(train_X.shape, train_y.shape,
 
 model = lstm.build_model(train_X, 
                          timesteps=n_in, 
-                         inlayer=int(train_X.shape[-1]*1.5),
-                         hiddenlayers=[550], 
+                         inlayer=int(train_X.shape[-1]*30),
+                         hiddenlayers=[300,300,300], 
                          outlayer=n_out)
 
 # fit network and save to history
 # low epocs for testing/debug
-history = model.fit(train_X, train_y, epochs=6, 
+history = model.fit(train_X, train_y, epochs=50, 
                     batch_size=100, 
                     validation_data=(X_validation, Y_validation), 
                     verbose=2, shuffle=False)
@@ -98,23 +101,22 @@ visualize.plot_loss(history)
 # make a prediction
 yhat = model.predict(test_X)
 # convert back to 2d
-test_X = ps.unshape(test_X)
+#test_X = ps.unshape(test_X)
 
 # invert scaling for forecast
-inv_yhat = concatenate((yhat, test_X[:, 1:]), axis=1)
-inv_yhat = scaler.inverse_transform(inv_yhat)
-inv_yhat = inv_yhat[:,0]
+#inv_yhat = concatenate((yhat, test_X[:, 1:]), axis=1)
+#inv_yhat = scaler.inverse_transform(inv_yhat)
+#inv_yhat = inv_yhat[:,0]
 
 # invert scaling for actual
-test_y = test_y.reshape((len(test_y), 1))
-inv_y = concatenate((test_y, test_X[:, 1:]), axis=1)
-inv_y = scaler.inverse_transform(inv_y)
-inv_y = inv_y[:,0]
+#test_y = test_y.reshape((len(test_y), 1))
+#inv_y = concatenate((test_y, test_X[:, 1:]), axis=1)
+#inv_y = scaler.inverse_transform(inv_y)
+#inv_y = inv_y[:,0]
 
-# plot unscaled
-visualize.plot_single(predicted=inv_yhat, actual=inv_y, ticker=ticker)
-# plot scaled
-#TODO: viz method. to plot the sequences...
+
+visualize.plot_single(predicted=yhat, actual=test_y, ticker=ticker)
+
 
 
 ###### TODO METHOD####

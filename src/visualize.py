@@ -6,7 +6,7 @@ Created on Thu Sep 14 13:57:32 2017
 """
 import matplotlib.pyplot as plt
 import datetime as dt
-
+import numpy as np
 
 def plot_single(predicted, actual, ticker, data_set_category='test'):
     d = dt.datetime.today() - dt.timedelta(days = len(actual))
@@ -49,10 +49,13 @@ def plot_full(predicted_data, true_data, prediction_len):
     ax.plot(true_data, label='True Data')
     #Pad the list of predictions to shift it in the graph to it's correct start
     for i, data in enumerate(predicted_data):
+        # filling the array with 'none' so that no data is plotting in the trail
         padding = [None for p in range(i * prediction_len)]
-        plt.plot(padding + data, label='Prediction')
+        # use np.append
+        plt.plot(np.insert(data, [0], padding), label='Prediction')
         plt.legend()
     plt.show()
+    
 
     
 def plot_features(dataset):
@@ -64,4 +67,21 @@ def plot_features(dataset):
         plt.plot(dataset[feature])
         plt.title(feature, y=0.5, loc='center')
         i +=1
+    plt.show()
+    
+    
+def plot_results_multiple(predicted_data, true_data, prediction_len):
+    fig = plt.figure(facecolor='white')
+    ax = fig.add_subplot(111)
+    ax.plot(true_data, label='True Data')
+    #Pad the list of predictions to shift it in the graph to it's correct start
+    for i, data in enumerate(predicted_data):
+        padding = [None for p in range(i * prediction_len)]
+        plt.plot(padding + data, label='Prediction')
+        plt.legend()
+    plt.show()
+    
+def plot_multiple(predicted_data, true_data,length):
+    plt.plot(true_data.reshape(-1, 1)[length:])
+    plt.plot(np.array(predicted_data).reshape(-1, 1)[length:])
     plt.show()

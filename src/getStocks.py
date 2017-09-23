@@ -17,12 +17,16 @@ import requests
 def get_single(ticker='AAPL', source='yahoo', 
                start_date=dt.datetime(1995,1,1), end_date=dt.date.today()):
     print('Getting stock data for {} from {}...'.format(ticker, source))
-    try:
-        data = web.DataReader(ticker, source, start_date, end_date,)
-        print('Successfully retrieved {}'.format(ticker))
-        return data
-    except RemoteDataError:
-        print('ERROR...could not retrieve {}'.format(ticker))
+    attempts=0
+    while attempts <3:
+            
+        try:
+            data = web.DataReader(ticker, source, start_date, end_date,)
+            print('Successfully retrieved {}'.format(ticker))
+            return data
+        except RemoteDataError:
+            attempts += 1
+            print('Error retrieving {}: attempt {}'.format(ticker, attempts))
             
         
 def save_tickers():
