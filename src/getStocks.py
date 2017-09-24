@@ -1,35 +1,78 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Sep  7 07:49:28 2017
 
-@author: hende
-"""
-import os
+import os, errno, glob
 import datetime as dt
+import pandas as pd
 import pandas_datareader.data as web
 from pandas_datareader._utils import RemoteDataError
 import bs4 as bs
 import pickle
 import requests
+import csv
 
-# def select_data_source
 
-def get_single(ticker='AAPL', source='yahoo', 
+
+
+def saveStock(data, ticker):
+    # check if directory exists
+    saveDir='../data/{}'.format(ticker)
+    if not os.path.exists(saveDir):
+        try:
+            os.makedirs(saveDir)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+    today=dt.datetime.utcnow()
+    fname='{}_{}.csv'.format(ticker, today.strftime('%d%m%Y'))             
+    data.to_csv('{}/{}'.format(saveDir,fname), index=False)
+    print('Successfully saved {}'.format(ticker.upper()))
+
+def load_single(ticker):
+    tickDir='../data/{}'.format(ticker)
+    files=glob.glob('{}/*.csv'.format(tickDir))
+    
+    try:
+        files=files[-1] #-1 to get largest dtstamp, most recent
+        try:
+            data=pd.read_csv(files)
+            print('Loaded {}'.format(ticker.upper()))
+            return data
+        except IOError:
+            print('Problem reading file: {}'.format(files))
+            
+    except IOError:
+        print('No files found for {}'.format(ticker))
+    
+    
+    
+def get_single(ticker='AAPL', source='yahoo', save=True,
                start_date=dt.datetime(1995,1,1), end_date=dt.date.today()):
-    print('Getting stock data for {} from {}...'.format(ticker, source))
+    print('Getting stock data for {} from {}...'.format(ticker.upper(), source))
     attempts=0
     while attempts <3:
             
         try:
             data = web.DataReader(ticker, source, start_date, end_date,)
-            print('Successfully retrieved {}'.format(ticker))
+            print('Successfully retrieved {}'.format(ticker.upper()))
+            if save:
+                saveStock(data,ticker)
             return data
         except RemoteDataError:
             attempts += 1
-            print('Error retrieving {}: attempt {}'.format(ticker, attempts))
+            print('Error retrieving {}: attempt {}'.format(ticker.upper(), attempts))
+    
+
             
-        
-def save_tickers():
+def save_tickers(returnTickers=False):
+    saveDir='../data/tickers'
+    today=dt.datetime.utcnow()
+    if not os.path.exists(saveDir):
+        try:
+            os.makedirs(saveDir)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+  
     resp = requests.get('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
     soup = bs.BeautifulSoup(resp.text, 'html.parser')
     table = soup.find('table',{'class':'wikitable sortable'})
@@ -38,10 +81,12 @@ def save_tickers():
         ticker = row.findAll('td')[0].text
         tickers.append(ticker)
 
-    with open("sp500tickers.pickle","wb") as f:
-              pickle.dump(tickers,f)
+    with open('{}/sp500_{}.txt'.format(saveDir, today.strftime('%d%m%Y')), 'w') as myfile:
+        wr = csv.writer(myfile,delimiter=',',quoting=csv.QUOTE_ALL)
+        wr.writerow(tickers)
 
-    return tickers
+    if returnTickers:
+        return tickers
 
 
 def get_mkt_data(reload_sp500=True,update_all=True, source='yahoo',
@@ -57,12 +102,12 @@ def get_mkt_data(reload_sp500=True,update_all=True, source='yahoo',
 
     for ticker in tickers:
         print('{}\t: '.format(ticker), end="")
-        if (not os.path.exists('stock_dfs/{}.csv'.format(ticker))) or update_all:
+        if (not os.path.exists('../data/{}.csv'.format(ticker))) or update_all:
             try:
                 df = web.DataReader(ticker, source, start_date, end_date)
-                df.to_csv('stock_dfs/{}.csv'.format(ticker))
-                print('Success'.format(ticker))
+                df.to_csv('../data/{}.csv'.format(ticker))
+                print('Success {}'.format(ticker))
             except RemoteDataError:
-                print('ERROR'.format(ticker))
+                print('ERROR')
         else:
-            print('Already have'.format(ticker))
+            print('Already have {}'.format(ticker))

@@ -13,13 +13,14 @@ from sklearn.preprocessing import MinMaxScaler
 
 ####TODO: reshaping so we can plot various n_in, n_out
 # model seems to work, but cant redim for plot
-ticker = 'abc'
+ticker = 'astc'
 n_in = 1
 n_out = 1
 
 # load dataset
-# dataset = read_csv('stock_dfs/AMD.csv', header=0, index_col=0)
-dataset = getStocks.get_single(ticker=ticker)
+# dataset = getStocks.get_single(ticker=ticker, save=True)
+dataset = getStocks.load_single(ticker)
+
 
 ## Generate new features
 dataset = fe.derivative(dataset, fill_na = True)
@@ -37,13 +38,21 @@ to the past 10 days, or to the entire dataset? or to something else? I would lea
 towards scaling to the sequence length (ie past 10 days) and include features that
 will have information related to the overall period'''
 '''could also convert simply to stationary'''
- 
+
+
 scaler = MinMaxScaler(feature_range=(-1, 1))
-scaled = scaler.fit_transform(dataset)
+
+'''scale according to the window --- n_in to n_out'''
+for row in range(dataset.shape[0]):
+    
+
+# scaled = scaler.fit_transform(dataset)
 
 # frame as supervised learning
 reframed = ps.series_to_supervised(scaled, n_in=n_in, n_out=n_out, 
                                    features=features)
+
+
 
 # create the list of features we dont want to predict
 # so take all features, less the one we want to predict

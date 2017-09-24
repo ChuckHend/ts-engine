@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Sep 14 13:57:32 2017
 
-@author: hende
-"""
 import matplotlib.pyplot as plt
 import datetime as dt
 import numpy as np
