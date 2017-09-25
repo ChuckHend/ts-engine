@@ -36,6 +36,7 @@ features = dataset.columns
     # d = series_to_supervised for scaled_in and scaled_out
     # scale d for each feature, scaled_in to scaled_out
     # d = filter d for n_in and n_out (n_in < scaled_in, n_out < scaled_out)'''
+    # perhaps this should be z-score scaling
 # scaled = scaler.fit_transform(dataset)
 
 # frame as supervised learning
@@ -111,8 +112,8 @@ yhat = model.predict(test_X)
 #inv_y = inv_y[:,0]
 
 
-visualize.plot_single(predicted=scaler.inverse_transform(yhat), 
-                      actual=scaler.inverse_transform(test_y), ticker=ticker)
+visualize.plot_single(predicted=yhat, 
+                      actual=test_y, ticker=ticker)
 
 
 ###### TODO METHOD####
