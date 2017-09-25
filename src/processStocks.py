@@ -1,8 +1,85 @@
 # -*- coding: utf-8 -*-
-
+from sklearn.preprocessing import MinMaxScaler
+import sys
 import numpy as np
 from pandas import DataFrame
 from pandas import concat
+import pandas as pd
+
+
+def drop_targets(dataset, features, n_out,target='Close'):
+    # create the list of features we dont want to predict
+    # so take all features, less the one we want to predict
+    dropList = list(features)
+    dropList.remove(target)
+    
+    # iterate over droplist, removing all columns in the droplist
+    # for t....t+n...which will be t+n_in-1
+    for feature in dropList:
+        # iterate over n_out-1
+        dataset.drop('{}(t)'.format(feature), axis=1, inplace=True)
+        
+        # drop all t+ that arent our target feature
+        for i in range(1,n_out):
+            tfeat='{}(t+{})'.format(feature,i)
+            dataset.drop(tfeat, axis=1, inplace=True)
+            
+    return dataset
+
+
+
+def get_filter_seq(features, n_in, n_out):
+    # creates the vector of columns we want from the outer scaled dataset
+    featStrings=[]
+    for feat in features:
+        featStrings.append('{}(t)'.format(feat))
+        
+        for x_in in range(1,n_in+1):
+            featStrings.append('{}(t-{})'.format(feat, x_in))
+            
+        for x_out in range(1,n_out): # t+1 would be n_out=2
+            featStrings.append('{}(t+{})'.format(feat, x_out))
+    return featStrings
+
+
+def scale_sequence(dataset, features):
+    # accepts a reframed dataset (already in supervised time series)
+    # scaled each observation, based on the data in the observation
+    
+    # features are the global feature set(prior to time series conv.)
+    
+    
+    scaler = MinMaxScaler(feature_range=(-1, 1))
+    
+    scaled=pd.DataFrame(columns=dataset.columns)
+    
+    for row in range(dataset.shape[0]):
+        d=dataset.iloc[row,:]
+        d=pd.DataFrame(d.values.reshape(1,d.shape[0]), columns=dataset.columns)
+        # iterate over each feature
+        # scaling each feature against over all time in observation
+        featdf=pd.DataFrame()
+        
+        status=row/dataset.shape[0]
+        sys.stdout.write("\r Progress....{}".format(round(status,2)))
+        sys.stdout.flush()
+            
+        for feat in features:
+            #select all the features with partial match
+            vec=d.columns.to_series().str.contains(feat)
+            vec=d.columns[vec]
+            d1=d[vec]
+            # reshape for minmaxscaler (needs to shape off columns)
+            # then scale the feature
+            shaped=d1.values.reshape(d1.shape[-1],1)
+            scal = scaler.fit_transform(shaped)
+            scal = scal.reshape(1,scal.shape[0])
+            scal = pd.DataFrame(scal, columns = vec)
+            featdf=pd.concat([featdf, scal], axis=1)
+            
+        scaled=scaled.append(featdf, ignore_index=True)
+        
+    return scaled
 
 
 def shape(dataset, n_in, features):

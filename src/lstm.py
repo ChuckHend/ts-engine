@@ -1,6 +1,6 @@
 import time
 import numpy as np
-from keras.layers.core import Dense, Activation, Dropout
+from keras.layers.core import Dense, Dropout
 from keras.layers.recurrent import LSTM
 from keras.models import Sequential
 
@@ -62,7 +62,7 @@ def build_model(x_train, timesteps, inlayer, outlayer,
         return_sequences=True
         ))
     model.add(Dropout(0.3))    
-    print('building {} layers w/ {} nodes'.format(len(hiddenlayers),
+    print('building {} LSTM layers w/ {} units'.format(len(hiddenlayers),
           hiddenlayers))
     
     #true by default
