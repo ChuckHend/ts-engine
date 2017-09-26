@@ -8,13 +8,14 @@ from keras.models import Sequential
 
 def tscv(dataset,train=0.6, validation=0.2):
     # 'test' set is the remainder of data after train and validation
+    # time series cross validation tscv
     rows = dataset.shape[0]
     traincut = int(rows*train)
     validationcut = int(rows*(train+validation))
     
-    train = dataset[:traincut,:]
-    validation = dataset[traincut:validationcut,:]
-    test = dataset[validationcut:,:]
+    train = dataset.values[:traincut,:]
+    validation = dataset.values[traincut:validationcut,:]
+    test = dataset.values[validationcut:,:]
     return train, validation, test
 
 
@@ -52,6 +53,11 @@ def build_model(x_train, timesteps, inlayer, outlayer,
     input_dim = x_train.shape[-1]
     model = Sequential()
     # input layer
+    if hiddenlayers==0:
+        l1_seq=False
+    else:
+        l1_seq=True
+        
     model.add(LSTM(
     #3D tensor with shape (batch_size, timesteps, input_dim)
     # (Optional) 2D tensors with shape  (batch_size, output_dim).
@@ -59,23 +65,22 @@ def build_model(x_train, timesteps, inlayer, outlayer,
         input_shape=(timesteps, input_dim),
         units = inlayer,
         # output_dim=batch_size, #this might be wrong or need to be variable
-        return_sequences=True
+        return_sequences=l1_seq
         ))
     model.add(Dropout(0.3))    
-    print('building {} LSTM layers w/ {} units'.format(len(hiddenlayers),
-          hiddenlayers))
     
     #true by default
     seq=True
-    for y, layer in enumerate(hiddenlayers):
-        lastlayr=len(hiddenlayers)-1
-        if y==lastlayr:
-            seq=False
-        model.add(LSTM(
-                units=layer,
-                return_sequences=seq,
-                activation='tanh'))
-        model.add(Dropout(0.3))
+    if hiddenlayers!=0:
+        for y, layer in enumerate(hiddenlayers):
+            lastlayr=len(hiddenlayers)-1
+            if y==lastlayr:
+                seq=False
+            model.add(LSTM(
+                    units=layer,
+                    return_sequences=seq,
+                    activation='tanh'))
+            model.add(Dropout(0.3))
 
     # output node   
     model.add(Dense(
@@ -85,5 +90,7 @@ def build_model(x_train, timesteps, inlayer, outlayer,
     start = time.time()
     model.compile(loss="mae", optimizer="adam")
     print("Compilation Time : ", time.time() - start)
+    model.summary()
+
     return model
 

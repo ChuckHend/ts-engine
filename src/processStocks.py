@@ -7,7 +7,7 @@ from pandas import concat
 import pandas as pd
 
 
-def drop_targets(dataset, features, n_out,target='Close'):
+def frame_targets(dataset, features, n_out,target='Close'):
     # create the list of features we dont want to predict
     # so take all features, less the one we want to predict
     dropList = list(features)
@@ -30,6 +30,7 @@ def drop_targets(dataset, features, n_out,target='Close'):
 
 def get_filter_seq(features, n_in, n_out):
     # creates the vector of columns we want from the outer scaled dataset
+    # outer being a set of t-n to t+n
     featStrings=[]
     for feat in features:
         featStrings.append('{}(t)'.format(feat))
@@ -45,11 +46,14 @@ def get_filter_seq(features, n_in, n_out):
 def scale_sequence(dataset, features):
     # accepts a reframed dataset (already in supervised time series)
     # scaled each observation, based on the data in the observation
-    
+    # on a feature by feature basis
     # features are the global feature set(prior to time series conv.)
+    # use normalise window form instead of monmax
     
+    #TODO: reassign derivative features to percentage change in fe fun
+    features=features.drop(['d1close', 'd2close'])
     
-    scaler = MinMaxScaler(feature_range=(-1, 1))
+    #scaler = MinMaxScaler(feature_range=(-1, 1))
     
     scaled=pd.DataFrame(columns=dataset.columns)
     
@@ -72,9 +76,16 @@ def scale_sequence(dataset, features):
             # reshape for minmaxscaler (needs to shape off columns)
             # then scale the feature
             shaped=d1.values.reshape(d1.shape[-1],1)
-            scal = scaler.fit_transform(shaped)
-            scal = scal.reshape(1,scal.shape[0])
-            scal = pd.DataFrame(scal, columns = vec)
+            #scal = scaler.fit_transform(shaped)
+            #scal = scal.reshape(1,scal.shape[0])
+            #scal = pd.DataFrame(scal, columns = vec)
+            # other method...
+            if shaped[0]:
+                pO=1
+            else:
+                pO=shaped[0]
+                
+            scal = [((float(p) / float(pO)) - 1) for p in shaped]
             featdf=pd.concat([featdf, scal], axis=1)
             
         scaled=scaled.append(featdf, ignore_index=True)
@@ -145,3 +156,12 @@ def unroll(data,sequence_length=24):
         # assign that selection to new array, all in the same row
         # move on to the next row in data, repeat
     return np.asarray(result)
+
+
+def normalise_windows(window_data):
+    normalised_data = []
+    for window in window_data:
+        normalised_window = [((float(p) / float(window[0])) - 1) for p in window]
+        normalised_data.append(normalised_window)
+    return normalised_data
+
