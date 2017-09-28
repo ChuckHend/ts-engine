@@ -7,7 +7,7 @@ import lstm
 import getStocks
 import visualize
 import predicts
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, 
 
 ####TODO: reshaping so we can plot various n_in, n_out
 # model seems to work, but cant redim for plot
@@ -21,8 +21,8 @@ dataset = getStocks.load_single(ticker)
 dataset.rename(columns={'Adj Close':'AdjCls'}, inplace=True)
 
 ## Generate new features
-#dataset = fe.derivative(dataset, fill_na = True)
-
+dataset = fe.derivative(dataset, fill_na = True)
+dataset = fe.weekDay(dataset)
 features = dataset.columns
 
 # Plot the features

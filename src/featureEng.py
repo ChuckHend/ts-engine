@@ -1,7 +1,19 @@
 # Feature Engineering
 import pandas as pd
 import numpy as np
+from sklearn.preprocessing import OneHotEncoder
 
+# create day of week from date
+def weekDay(dataset):
+    #Monday=0, Sunday=6
+    date=pd.to_datetime(dataset['Date'])
+    dataset.drop(['Date'], axis=1, inplace=True)
+    dow=date.dt.dayofweek
+    enc = OneHotEncoder()
+    dat=enc.fit_transform(dow.values.reshape(-1,1)).toarray()
+    dat=pd.DataFrame(dat, columns=['M','T','W','Th','F'])
+    dataset=pd.concat([dataset, dat], axis=1)
+    
 # Calculate d/dx and d2/dx2 for both close and Volume
 def derivative(df, fill_na = True):
     df['d1close'] = df.Close.diff()

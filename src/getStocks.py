@@ -53,6 +53,8 @@ def get_single(ticker='AAPL', source='yahoo', save=True,
             
         try:
             data = web.DataReader(ticker, source, start_date, end_date,)
+            data['Date'] = data.index
+
             print('Successfully retrieved {}'.format(ticker.upper()))
             if save:
                 saveStock(data,ticker)
