@@ -51,24 +51,37 @@ def scale_sequence(dataset, features):
     # use normalise window form instead of monmax
     
     #TODO: reassign derivative features to percentage change in fe fun
-    features=features.drop(['d1close', 'd2close'])
+    #features=features.drop(['d1close', 'd2close'])
     
-    #scaler = MinMaxScaler(feature_range=(-1, 1))
+    # also do not scale the weekdays (they are already one-hot encoded)
+    days=['M','T','W','Th','F']
+    features=features.drop(days)
+    #get a vec of length=columns, set all false
+    vec=dataset.columns=='1'
+    for day in days:
+        loc=dataset.columns.to_series().str.contains(day)
+        vec=np.logical_or(loc, vec)
+    #set the day columns aside for later
+    vec=dataset.columns[vec]
+    df=dataset[vec]
     
+    #blank frame for loop
     scaled=pd.DataFrame(columns=dataset.columns)
     
-    for row in range(dataset.shape[0]):
+    # row by row leveling each feature sequence
+    for row in range(dataset.shape[0]): 
         d=dataset.iloc[row,:]
         d=pd.DataFrame(d.values.reshape(1,d.shape[0]), columns=dataset.columns)
         # iterate over each feature
         # scaling each feature against over all time in observation
+        
         featdf=pd.DataFrame()
         
         status=row/dataset.shape[0]
         sys.stdout.write("\r Progress....{}".format(round(status,2)))
         sys.stdout.flush()
             
-        for feat in features:
+        for feat in features: # level each feature in the row-sequence
             #select all the features with partial match
             vec=d.columns.to_series().str.contains(feat)
             vec=d.columns[vec]
@@ -76,20 +89,20 @@ def scale_sequence(dataset, features):
             # reshape for minmaxscaler (needs to shape off columns)
             # then scale the feature
             shaped=d1.values.reshape(d1.shape[-1],1)
-            #scal = scaler.fit_transform(shaped)
-            #scal = scal.reshape(1,scal.shape[0])
-            #scal = pd.DataFrame(scal, columns = vec)
-            # other method...
-            if shaped[0]:
+
+            if shaped[0]==0:
                 pO=1
             else:
                 pO=shaped[0]
                 
             scal = [((float(p) / float(pO)) - 1) for p in shaped]
+            scal=pd.DataFrame(scal).T
+            scal.columns=vec
             featdf=pd.concat([featdf, scal], axis=1)
             
         scaled=scaled.append(featdf, ignore_index=True)
-        
+     
+    scaled=pd.concat([scal, df], axis=1)  
     return scaled
 
 
