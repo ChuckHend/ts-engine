@@ -12,8 +12,8 @@ import predicts
 # model seems to work, but cant redim for plot
 ticker = 'astc'
 
-n_in = 5
-n_out = 1
+n_in = 30
+n_out = 30
 # load dataset
 #dataset = getStocks.get_single(ticker=ticker, save=True)
 dataset = getStocks.load_single(ticker)
@@ -47,10 +47,12 @@ reframed=ps.frame_targets(reframed, features, n_out,target='Close')
 
 #scaler = MinMaxScaler(feature_range=(-1, 1))
 #scaled = scaler.fit_transform(reframed)
-scaled=ps.scale_sequence(reframed, features)
+# pass the feature in the sequence that we dont want scaled
+
+scaled=ps.scale_sequence(reframed, features, scaleTarget=False, target='Close')
 
 # split into train, validation, test
-train, validation, test = lstm.tscv(scaled, train=0.5, validation=0.4)
+train, validation, test = lstm.tscv(scaled, train=0.7, validation=0.25)
 
 # split into input and outputs
 # the last n columns are the output variable
@@ -95,8 +97,12 @@ visualize.plot_loss(history)
 #inv_y = scaler.inverse_transform(inv_y)
 #inv_y = inv_y[:,0]
 
+
+# yhat=predicts.predict_sequence_full(model, test_X, window_size=n_out)
+
+
 yhat = predicts.predict_sequences_multiple(model, test_X, n_in, n_out)
-visualize.plot_results_multiple(yhat, test_y, n_out)
+visualize.plot_results_multiple(yhat, test_y[:,0], n_out)
 
 ###### TODO METHOD####
 #import predicts

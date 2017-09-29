@@ -43,38 +43,50 @@ def get_filter_seq(features, n_in, n_out):
     return featStrings
 
 
-def scale_sequence(dataset, features):
+def find(lst, a): # return index of match
+    return [i for i, x in enumerate(lst) if x==a]
+
+
+def scale_sequence(dataset, features, scaleTarget=True, target='Close'):
+       
     print('Scaling each sequence...')
     # accepts a reframed dataset (already in supervised time series)
     # scaled each observation, based on the data in the observation
     # on a feature by feature basis
     # features are the global feature set(prior to time series conv.)
     # use normalise window form instead of monmax
-    
-    #TODO: reassign derivative features to percentage change in fe fun
-    #features=features.drop(['d1close', 'd2close'])
-    
+
     # seqfeats are the features in sequence form
     seqfeats=dataset.columns
     
+    
     # do not scale the weekdays (they are already one-hot encoded)
-    days=['M','T','W','Th','F']
+    days=['M','T','W','Th','F']    
     vec= [False] * len(dataset.columns)
     for day in days:
         vec_i=seqfeats.to_series().str.contains(day)
         vec=np.logical_or(vec, vec_i)
         
-    seqfeats=seqfeats.drop(seqfeats[vec])
+    excl_cols=list(seqfeats[vec])
+    
+    # build list of columns to exclude from scaling
+    if(not scaleTarget):
+        tO='{}(t)'.format(target)
+        tO=find(seqfeats, tO)
+        add_seq=seqfeats[tO[0]:]
+        excl_cols.extend(list(add_seq))
+
+
+    seqfeats=seqfeats.drop(excl_cols)
     features=features.drop(days)
     # now split the dataset into two dataframes
     # dow= data contains the day of week data
     # dataset=what we will be scaling by sequence
-    
-    vec=dataset.columns[vec]
-    dow=dataset[vec]
+
+    dow=dataset[excl_cols]
     
     #then drop the days of week from the working dataset
-    dataset=dataset.drop(vec, axis=1)
+    dataset=dataset.drop(excl_cols, axis=1)
     
     # create a dictionary for the variables we'll be iterating over
     colDict={}
