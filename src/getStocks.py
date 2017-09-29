@@ -14,6 +14,8 @@ import csv
 
 
 def saveStock(data, ticker):
+    today=dt.datetime.utcnow()
+    fname='{}_{}.csv'.format(ticker, today.strftime('%d%m%Y'))  
     # check if directory exists
     saveDir='../data/{}'.format(ticker)
     if not os.path.exists(saveDir):
@@ -21,9 +23,7 @@ def saveStock(data, ticker):
             os.makedirs(saveDir)
         except OSError as e:
             if e.errno != errno.EEXIST:
-                raise
-    today=dt.datetime.utcnow()
-    fname='{}_{}.csv'.format(ticker, today.strftime('%d%m%Y'))             
+                raise 
     data.to_csv('{}/{}'.format(saveDir,fname), index=False)
     print('Successfully saved {}'.format(ticker.upper()))
 
@@ -113,3 +113,19 @@ def get_mkt_data(reload_sp500=True,update_all=True, source='yahoo',
                 print('ERROR')
         else:
             print('Already have {}'.format(ticker))
+
+def saveScaled(data, n_in, n_out, ticker):
+    today=dt.datetime.utcnow()
+    fname='{}_{}_scaled_{}_{}.csv'.format(ticker, today.strftime('%d%m%Y'),
+           n_in, n_out)
+    # check if directory exists
+    saveDir='../data/{}'.format(ticker)
+    if not os.path.exists(saveDir):
+        try:
+            os.makedirs(saveDir)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+    data.to_csv('{}/{}'.format(saveDir,fname), index=False)
+    print('Successfully saved {}'.format(fname.upper()))
+    

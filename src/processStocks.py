@@ -21,7 +21,7 @@ def frame_targets(dataset, features, n_out,target='Close'):
         
         # drop all t+ that arent our target feature
         for i in range(1,n_out):
-            tfeat='{}(t+{})'.format(feature,i)
+            tfeat='{}(t+{:02})'.format(feature,i)
             dataset.drop(tfeat, axis=1, inplace=True)
             
     return dataset
@@ -36,10 +36,10 @@ def get_filter_seq(features, n_in, n_out):
         featStrings.append('{}(t)'.format(feat))
         
         for x_in in range(1,n_in+1):
-            featStrings.append('{}(t-{})'.format(feat, x_in))
+            featStrings.append('{}(t-{:02})'.format(feat, x_in))
             
         for x_out in range(1,n_out): # t+1 would be n_out=2
-            featStrings.append('{}(t+{})'.format(feat, x_out))
+            featStrings.append('{}(t+{:02})'.format(feat, x_out))
     return featStrings
 
 
@@ -59,7 +59,6 @@ def scale_sequence(dataset, features, scaleTarget=True, target='Close'):
     # seqfeats are the features in sequence form
     seqfeats=dataset.columns
     
-    
     # do not scale the weekdays (they are already one-hot encoded)
     days=['M','T','W','Th','F']    
     vec= [False] * len(dataset.columns)
@@ -70,16 +69,16 @@ def scale_sequence(dataset, features, scaleTarget=True, target='Close'):
     excl_cols=list(seqfeats[vec])
     
     # build list of columns to exclude from scaling
+    # save the target features for positioning later
+    tO='{}(t)'.format(target)
+    tO=find(seqfeats, tO)
+    tgt_seq=seqfeats[tO[0]:]
     if(not scaleTarget):
-        tO='{}(t)'.format(target)
-        tO=find(seqfeats, tO)
-        add_seq=seqfeats[tO[0]:]
-        excl_cols.extend(list(add_seq))
-
+        excl_cols.extend(list(tgt_seq))
 
     seqfeats=seqfeats.drop(excl_cols)
-    features=features.drop(days)
-    # now split the dataset into two dataframes
+    features=[x for x in features if x not in days]
+
     # dow= data contains the day of week data
     # dataset=what we will be scaling by sequence
 
@@ -112,6 +111,7 @@ def scale_sequence(dataset, features, scaleTarget=True, target='Close'):
         featdf=pd.DataFrame()
         for feature in colDict: # level each feature in the row-sequence
             #select all the features with partial match
+            
             vec=colDict[feature]
             d1=d[vec]
             # reshape for minmaxscaler (needs to shape off columns)
@@ -128,11 +128,19 @@ def scale_sequence(dataset, features, scaleTarget=True, target='Close'):
             scal.columns=vec
             featdf=pd.concat([featdf, scal], axis=1)
         
-        scaled=scaled.append(featdf)
+        scaled=scaled.append(featdf) # append the next row
         
     scaled=scaled.reset_index(drop=True)
     dow=dow.reset_index(drop=True)
-    scaled=pd.concat([scaled, dow], axis=1)
+    
+    # need to make sure target variables get on the 'far right'
+    if scaleTarget:
+        # now move the target features to the right
+        tgt=scaled[tgt_seq]
+        scaled=scaled.drop(list((tgt_seq)),axis=1)
+        scaled=pd.concat([dow, scaled, tgt], axis=1)
+    else:
+        scaled=pd.concat([scaled, dow], axis=1)
     print('Sequence scaling complete.')
     return scaled
 
@@ -158,14 +166,14 @@ def series_to_supervised(data, features, n_in=1, n_out=1, dropnan=True):
     # input sequence (t-n, ... t-1)
     for i in range(n_in, 0, -1):
         cols.append(df.shift(i))
-        names += [('{}(t-%d)'.format(features[j]) % (i)) for j in range(n_vars)]
+        names += [('{}(t-%02d)'.format(features[j]) % (i)) for j in range(n_vars)]
 	# forecast sequence (t, t+1, ... t+n)
     for i in range(0, n_out):
         cols.append(df.shift(-i))
         if i == 0:
             names += [('{}(t)'.format(features[j])) for j in range(n_vars)]
         else:
-            names += [('{}(t+%d)'.format(features[j]) % (i)) for j in range(n_vars)]
+            names += [('{}(t+%02d)'.format(features[j]) % (i)) for j in range(n_vars)]
     # put it all together
     agg = concat(cols, axis=1)
     agg.columns = names
