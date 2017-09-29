@@ -1,13 +1,12 @@
 import os
-#os.chdir('c:/Users/hende/onedrive/analytics/finance/4cast/src')
-os.chdir('/Users/ahendel1/documents/academics/4cast/src')
+#os.chdir('/Users/ahendel1/documents/academics/4cast/src')
+os.chdir('D:/4cast/src')
 import featureEng as fe
 import processStocks as ps
 import lstm
 import getStocks
 import visualize
 import predicts
-from sklearn.preprocessing import MinMaxScaler
 
 ####TODO: reshaping so we can plot various n_in, n_out
 # model seems to work, but cant redim for plot
@@ -29,14 +28,13 @@ features = dataset.columns
 # visualize.plot_features(dataset)
 
 # normalize or scale features
-''' scaling might not even be necessary....'''
+''' scaling might not even be necessary....but it probably is'''
 
 ''' steps:
     # d = series_to_supervised for scaled_in and scaled_out
     # scale d for each feature, scaled_in to scaled_out
     # d = filter d for n_in and n_out (n_in < scaled_in, n_out < scaled_out)'''
     # perhaps this should be z-score scaling
-
 
 # frame as supervised learning
 # this will be for scaling the data to the window scaled_in to scaled_out
@@ -82,7 +80,7 @@ history = model.fit(train_X, train_y,
 visualize.plot_loss(history)
 
 # make a prediction
-yhat = model.predict(test_X)
+#yhat = model.predict(test_X)
 # convert back to 2d
 #test_X = ps.unshape(test_X)
 

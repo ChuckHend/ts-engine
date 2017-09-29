@@ -44,6 +44,7 @@ def get_filter_seq(features, n_in, n_out):
 
 
 def scale_sequence(dataset, features):
+    print('Scaling each sequence...')
     # accepts a reframed dataset (already in supervised time series)
     # scaled each observation, based on the data in the observation
     # on a feature by feature basis
@@ -53,38 +54,53 @@ def scale_sequence(dataset, features):
     #TODO: reassign derivative features to percentage change in fe fun
     #features=features.drop(['d1close', 'd2close'])
     
-    # also do not scale the weekdays (they are already one-hot encoded)
+    # seqfeats are the features in sequence form
+    seqfeats=dataset.columns
+    
+    # do not scale the weekdays (they are already one-hot encoded)
     days=['M','T','W','Th','F']
-    features=features.drop(days)
-    #get a vec of length=columns, set all false
-    vec=dataset.columns=='1'
+    vec= [False] * len(dataset.columns)
     for day in days:
-        loc=dataset.columns.to_series().str.contains(day)
-        vec=np.logical_or(loc, vec)
-    #set the day columns aside for later
+        vec_i=seqfeats.to_series().str.contains(day)
+        vec=np.logical_or(vec, vec_i)
+        
+    seqfeats=seqfeats.drop(seqfeats[vec])
+    features=features.drop(days)
+    # now split the dataset into two dataframes
+    # dow= data contains the day of week data
+    # dataset=what we will be scaling by sequence
+    
     vec=dataset.columns[vec]
-    df=dataset[vec]
+    dow=dataset[vec]
     
-    #blank frame for loop
-    scaled=pd.DataFrame(columns=dataset.columns)
+    #then drop the days of week from the working dataset
+    dataset=dataset.drop(vec, axis=1)
     
-    # row by row leveling each feature sequence
-    for row in range(dataset.shape[0]): 
+    # create a dictionary for the variables we'll be iterating over
+    colDict={}
+    for feature in features:
+        # which columns contain partial match of this feature?
+        cols=dataset.columns.to_series().str.contains(feature)
+        cols=dataset.columns[cols]
+        colDict[feature]=cols
+    
+    scaled=pd.DataFrame(columns=dataset.columns)   
+    for row in range(dataset.shape[0]): # row by row scaling each feature sequence
         d=dataset.iloc[row,:]
-        d=pd.DataFrame(d.values.reshape(1,d.shape[0]), columns=dataset.columns)
+        d=pd.DataFrame(d.values.reshape(1,d.shape[0]), 
+                       columns=dataset.columns)
         # iterate over each feature
         # scaling each feature against over all time in observation
         
-        featdf=pd.DataFrame()
-        
+        # print the current status to console
         status=row/dataset.shape[0]
         sys.stdout.write("\r Progress....{}".format(round(status,2)))
         sys.stdout.flush()
-            
-        for feat in features: # level each feature in the row-sequence
+         
+        featdf=pd.DataFrame()
+        for feature in colDict: # level each feature in the row-sequence
             #select all the features with partial match
-            vec=d.columns.to_series().str.contains(feat)
-            vec=d.columns[vec]
+            vec=colDict[feature]
             d1=d[vec]
             # reshape for minmaxscaler (needs to shape off columns)
             # then scale the feature
@@ -93,16 +109,19 @@ def scale_sequence(dataset, features):
             if shaped[0]==0:
                 pO=1
             else:
-                pO=shaped[0]
+                pO=float(shaped[0])
                 
-            scal = [((float(p) / float(pO)) - 1) for p in shaped]
+            scal = [((float(p) / pO) - 1) for p in shaped]
             scal=pd.DataFrame(scal).T
             scal.columns=vec
             featdf=pd.concat([featdf, scal], axis=1)
-            
-        scaled=scaled.append(featdf, ignore_index=True)
-     
-    scaled=pd.concat([scal, df], axis=1)  
+        
+        scaled=scaled.append(featdf)
+        
+    scaled=scaled.reset_index(drop=True)
+    dow=dow.reset_index(drop=True)
+    scaled=pd.concat([scaled, dow], axis=1)
+    print('Sequence scaling complete.')
     return scaled
 
 
