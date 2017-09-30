@@ -54,9 +54,10 @@ reframed=ps.frame_targets(reframed, features, n_out,target=target)
 #scaled = scaler.fit_transform(reframed)
 # pass the feature in the sequence that we dont want scaled
 
+#reframed=reframed.iloc[:10,:] #test/debug
+#dataset=reframed
 scaled=ps.scale_sequence(reframed, features, 
                          scaleTarget=True, target='Close')
-
 
 #getStocks.saveScaled(scaled, n_in, n_out, ticker)
 # load scaled 
@@ -71,7 +72,7 @@ train, validation, test = lstm.tscv(scaled, train=0.7, validation=0.25)
 
 # split into input and outputs
 # the last n columns are the output variable
-####TODO Ensure target feature is at -n_out
+
 train_X, train_y = train[:, :-n_out], train[:, -n_out:]
 X_validation, Y_validation = validation[:, :-n_out], validation[:, -n_out:]
 test_X, test_y = test[:, :-n_out], test[:, -n_out:]
@@ -87,7 +88,7 @@ test_X = ps.shape(test_X, n_in=n_in, features=features)
 model = lstm.build_model(train_X, 
                          timesteps=n_in, 
                          inlayer=int(train_X.shape[-1]),
-                         hiddenlayers=[800,400], 
+                         hiddenlayers=[800], 
                          outlayer=n_out)
 # fit network and save to history
 history = model.fit(train_X, train_y, 

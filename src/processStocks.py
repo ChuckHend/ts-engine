@@ -57,6 +57,10 @@ def scale_sequence(dataset, features, scaleTarget=True, target='Close'):
     # use normalise window form instead of monmax
 
     # seqfeats are the features in sequence form
+    #NOTE: dataset.columns ARE in the correct time sequence!
+    
+    ### DO A HARD COPY
+    out_order=dataset.columns[:]
     seqfeats=dataset.columns
     
     # do not scale the weekdays (they are already one-hot encoded)
@@ -141,17 +145,19 @@ def scale_sequence(dataset, features, scaleTarget=True, target='Close'):
         scaled=pd.concat([dow, scaled, tgt], axis=1)
     else:
         scaled=pd.concat([scaled, dow], axis=1)
+    
+    scaled=scaled[out_order]
     print('Sequence scaling complete.')
     return scaled
 
 
 def shape(dataset, n_in, features):
-    '''Shape data for LSTM input '''
+    #Shape data for LSTM input
     shaped = dataset.reshape(dataset.shape[0], n_in, len(features))
     return shaped
 
 def unshape(dataset):
-    '''Convert from LSTM to 2 dimensional '''
+    #Convert from LSTM to 2 dimensional
     dim2 = dataset.shape[2] * dataset.shape[1]
     unshaped = dataset.reshape((dataset.shape[0], dim2))
     return unshaped
@@ -217,3 +223,20 @@ def normalise_windows(window_data):
         normalised_data.append(normalised_window)
     return normalised_data
 
+#def timeOrder(data, n_in, n_out):
+#    # make a sequence that the features should be in
+#    seq=[]
+#    for x in range(1, n_in+1):
+#        seq.append(('(t-{:02})'.format(x)))
+#        seq=list(reversed(seq))
+#        
+#    seq.append('(t)')
+#    
+#    for x in range(1, n_out+1):
+#        seq.append(('(t+{:02})'.format(x)))
+#    
+#    outdata=pd.DataFrame()
+#    for col in seq:
+#        d=data
+        
+    
