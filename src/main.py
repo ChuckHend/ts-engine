@@ -57,7 +57,7 @@ reframed=ps.frame_targets(reframed, features, n_out,target=target)
 #reframed=reframed.iloc[:10,:] #test/debug
 #dataset=reframed
 scaled=ps.scale_sequence(reframed, features, 
-                         scaleTarget=True, target='Close')
+                         scaleTarget=False, target='Close')
 
 #getStocks.saveScaled(scaled, n_in, n_out, ticker)
 # load scaled 
@@ -87,12 +87,12 @@ test_X = ps.shape(test_X, n_in=n_in, features=features)
 
 model = lstm.build_model(train_X, 
                          timesteps=n_in, 
-                         inlayer=int(train_X.shape[-1]),
-                         hiddenlayers=[800], 
+                         inlayer=int(train_X.shape[-1]*15),
+                         hiddenlayers=[100], 
                          outlayer=n_out)
 # fit network and save to history
 history = model.fit(train_X, train_y, 
-                    epochs=3, 
+                    epochs=20, 
                     batch_size=750, 
                     validation_data=(X_validation, Y_validation), 
                     verbose=2, shuffle=False)
@@ -100,24 +100,6 @@ history = model.fit(train_X, train_y,
 # plot history
 visualize.plot_loss(history)
 
-# make a prediction
-#yhat = model.predict(test_X)
-# convert back to 2d
-#test_X = ps.unshape(test_X)
-
-# invert scaling for forecast
-#inv_yhat = concatenate((yhat, test_X[:, 1:]), axis=1)
-#inv_yhat = scaler.inverse_transform(inv_yhat)
-#inv_yhat = inv_yhat[:,0]
-
-# invert scaling for actual
-#test_y = test_y.reshape((len(test_y), test_y.shape[-1]))
-#inv_y = concatenate((test_y, test_X[:, 1:]), axis=1)
-#inv_y = scaler.inverse_transform(inv_y)
-#inv_y = inv_y[:,0]
-
-
-# yhat=predicts.predict_sequence_full(model, test_X, window_size=n_out)
 
 ### KEEP WORKING ####
 yhat = predicts.predict_sequences_multiple(model, test_X, n_in, n_out)
