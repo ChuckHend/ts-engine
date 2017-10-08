@@ -66,7 +66,7 @@ def plot_features(dataset):
     plt.show()
     
     
-def plot_results_multiple(predicted_data, true_data, prediction_len):
+def plot_results_multiple(predicted_data, true_data, prediction_len, legend=True):
     fig = plt.figure(facecolor='white')
     ax = fig.add_subplot(111)
     ax.plot(true_data, label='True Data')
@@ -74,7 +74,8 @@ def plot_results_multiple(predicted_data, true_data, prediction_len):
     for i, data in enumerate(predicted_data):
         padding = [None for p in range(i * prediction_len)]
         plt.plot(padding + data, label='Prediction')
-        plt.legend()
+        if(legend):
+            plt.legend()
     plt.show()
     
 def plot_multiple(predicted_data, true_data,length):

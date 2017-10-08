@@ -66,7 +66,7 @@ def build_model(x_train, timesteps, inlayer, outlayer,
         units = inlayer,
         # output_dim=batch_size, #this might be wrong or need to be variable
         return_sequences=l1_seq,
-        activation='sigmoid'
+        activation='tanh'
         ))
     model.add(Dropout(0.1))    
     
@@ -80,7 +80,7 @@ def build_model(x_train, timesteps, inlayer, outlayer,
             model.add(LSTM(
                     units=layer,
                     return_sequences=seq,
-                    activation='sigmoid'))
+                    activation='tanh'))
             model.add(Dropout(0.1))
 
     # output node   
@@ -89,7 +89,7 @@ def build_model(x_train, timesteps, inlayer, outlayer,
         activation='linear'))
 
     start = time.time()
-    model.compile(loss="mse", optimizer="adam")
+    model.compile(loss="mse", optimizer="rmsprop")
     print("Compilation Time : ", time.time() - start)
     model.summary()
 

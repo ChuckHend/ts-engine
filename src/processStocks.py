@@ -59,7 +59,8 @@ def scale_sequence(dataset, features, scaleTarget=True, target='Close'):
     # seqfeats are the features in sequence form
     #NOTE: dataset.columns ARE in the correct time sequence!
     
-    ### DO A HARD COPY
+    ### DO A HARD COPY we want the order of the columns going out to be the same
+    # order that they were coming in
     out_order=dataset.columns[:]
     seqfeats=dataset.columns
     
@@ -83,13 +84,12 @@ def scale_sequence(dataset, features, scaleTarget=True, target='Close'):
     seqfeats=seqfeats.drop(excl_cols)
     features=[x for x in features if x not in days]
 
-    # dow= data contains the day of week data
     # dataset=what we will be scaling by sequence
 
-    dow=dataset[excl_cols]
+    dow=dataset[excl_cols] # the data that isnt being scaled
     
     #then drop the days of week from the working dataset
-    dataset=dataset.drop(excl_cols, axis=1)
+    dataset=dataset.drop(excl_cols, axis=1) # data to be scaled
     
     # create a dictionary for the variables we'll be iterating over
     colDict={}
@@ -163,13 +163,14 @@ def unshape(dataset):
     return unshaped
 
 
-# convert series to supervised learning
+# convert series to supervised
 def series_to_supervised(data, features, n_in=1, n_out=1, dropnan=True):
     n_vars = 1 if type(data) is list else data.shape[1]
 
     df = DataFrame(data)
     cols, names = list(), list()
     # input sequence (t-n, ... t-1)
+    print('starting Series to supverised conversion...')
     for i in range(n_in, 0, -1):
         cols.append(df.shift(i))
         names += [('{}(t-%02d)'.format(features[j]) % (i)) for j in range(n_vars)]

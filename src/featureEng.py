@@ -12,6 +12,8 @@ def weekDay(dataset, drop_na=True):
     enc = OneHotEncoder()
     dat=enc.fit_transform(dow.values.reshape(-1,1)).toarray()
     dat=pd.DataFrame(dat, columns=['M','T','W','Th','F'])
+    dat=dat.reset_index(drop=True)
+    dataset=dataset.reset_index(drop=True)
     dataset=pd.concat([dataset, dat], axis=1)
     if drop_na:
         dataset=dataset.dropna(0)

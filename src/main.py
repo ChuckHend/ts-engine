@@ -1,5 +1,4 @@
 import os
-import pandas as pd
 #os.chdir('/Users/ahendel1/documents/academics/4cast/src')
 os.chdir('D:/4cast/src')
 import featureEng as fe
@@ -11,24 +10,25 @@ import predicts
 
 ####TODO: reshaping so we can plot various n_in, n_out
 # model seems to work, but cant redim for plot
-ticker = 'astc'
+ticker = 'unh'
 
-n_in = 30
+n_in = 50
 n_out = 30
-# load dataset
-#dataset = getStocks.get_single(ticker=ticker, save=True)
-dataset = getStocks.load_single(ticker)
-dataset.rename(columns={'Adj Close':'AdjCls'}, inplace=True)
+target = 'd1close'
 
+# load dataset
+dataset = getStocks.get_single(ticker=ticker, save=True)
+#dataset = getStocks.load_single(ticker)
+dataset.rename(columns={'Adj Close':'AdjCls'}, inplace=True)
 ## Generate new features
 dataset = fe.derivative(dataset, drop_na = True)
 dataset = fe.weekDay(dataset)
-target = 'Close'
 features = list(dataset.columns)
 # move target to position [-1]
 features.remove(target)
 features.append(target)
 features=list(features)
+dataset=dataset[features]
 # Plot the features
 # visualize.plot_features(dataset)
 
@@ -57,7 +57,7 @@ reframed=ps.frame_targets(reframed, features, n_out,target=target)
 #reframed=reframed.iloc[:10,:] #test/debug
 #dataset=reframed
 scaled=ps.scale_sequence(reframed, features, 
-                         scaleTarget=False, target='Close')
+                         scaleTarget=True, target=target)
 
 #getStocks.saveScaled(scaled, n_in, n_out, ticker)
 # load scaled 
@@ -68,7 +68,7 @@ scaled=ps.scale_sequence(reframed, features,
 # put in order of time (t-n_in should be on left of df, with t+ on the right)
 
 # split into train, validation, test
-train, validation, test = lstm.tscv(scaled, train=0.7, validation=0.25)
+train, validation, test = lstm.tscv(scaled, train=0.7, validation=0.2)
 
 # split into input and outputs
 # the last n columns are the output variable
@@ -85,15 +85,16 @@ train_X = ps.shape(train_X, n_in=n_in, features=features)
 X_validation = ps.shape(X_validation, n_in=n_in, features=features)
 test_X = ps.shape(test_X, n_in=n_in, features=features)
 
+
 model = lstm.build_model(train_X, 
                          timesteps=n_in, 
-                         inlayer=int(train_X.shape[-1]*15),
+                         inlayer=int(train_X.shape[-1]*10),
                          hiddenlayers=[100], 
                          outlayer=n_out)
 # fit network and save to history
 history = model.fit(train_X, train_y, 
-                    epochs=20, 
-                    batch_size=750, 
+                    epochs=50, 
+                    batch_size=100, 
                     validation_data=(X_validation, Y_validation), 
                     verbose=2, shuffle=False)
 
@@ -101,9 +102,10 @@ history = model.fit(train_X, train_y,
 visualize.plot_loss(history)
 
 
-### KEEP WORKING ####
+### KEEP THIS WORKING ####
 yhat = predicts.predict_sequences_multiple(model, test_X, n_in, n_out)
-visualize.plot_results_multiple(yhat, test_y[:,0], n_out)
+visualize.plot_results_multiple(yhat, test_y[:,0], n_out, legend=False)
+# visualize.plot_single(yhat, test_y, ticker, data_set_category='test')
 
 ###### TODO METHOD####
 #import predicts
