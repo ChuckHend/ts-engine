@@ -3,7 +3,7 @@ time
 datetime
 numpy
 pandas
-pandas_datareader
+pandas-datareader
 matplotlib
 scikit-learn
 scipy
