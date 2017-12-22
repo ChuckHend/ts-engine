@@ -12,10 +12,9 @@ import csv
 
 
 
-
 def saveStock(data, ticker):
     today=dt.datetime.utcnow()
-    fname='{}_{}.csv'.format(ticker, today.strftime('%d%m%Y'))  
+    fname='{}_{}.csv'.format(ticker, today.strftime('%d%m%Y'))
     # check if directory exists
     saveDir='../data/{}'.format(ticker)
     if not os.path.exists(saveDir):
@@ -23,14 +22,14 @@ def saveStock(data, ticker):
             os.makedirs(saveDir)
         except OSError as e:
             if e.errno != errno.EEXIST:
-                raise 
+                raise
     data.to_csv('{}/{}'.format(saveDir,fname), index=False)
     print('Successfully saved {}'.format(ticker.upper()))
 
 def load_single(ticker):
     tickDir='../data/{}'.format(ticker)
     files=glob.glob('{}/*.csv'.format(tickDir))
-    
+
     try:
         files=files[-1] #-1 to get largest dtstamp, most recent
         try:
@@ -39,18 +38,18 @@ def load_single(ticker):
             return data
         except IOError:
             print('Problem reading file: {}'.format(files))
-            
+
     except IOError:
         print('No files found for {}'.format(ticker))
-    
-    
-    
+
+
+
 def get_single(ticker='AAPL', source='yahoo', save=True,
                start_date=dt.datetime(1995,1,1), end_date=dt.date.today()):
     print('Getting stock data for {} from {}...'.format(ticker.upper(), source))
     attempts=0
     while attempts <3:
-            
+
         try:
             data = web.DataReader(ticker, source, start_date, end_date,)
             data['Date'] = data.index
@@ -62,9 +61,9 @@ def get_single(ticker='AAPL', source='yahoo', save=True,
         except RemoteDataError:
             attempts += 1
             print('Error retrieving {}: attempt {}'.format(ticker.upper(), attempts))
-    
 
-            
+
+
 def save_tickers(returnTickers=False):
     saveDir='../data/tickers'
     today=dt.datetime.utcnow()
@@ -74,7 +73,7 @@ def save_tickers(returnTickers=False):
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
-  
+
     resp = requests.get('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
     soup = bs.BeautifulSoup(resp.text, 'html.parser')
     table = soup.find('table',{'class':'wikitable sortable'})
@@ -93,21 +92,30 @@ def save_tickers(returnTickers=False):
 
 def get_mkt_data(reload_sp500=True,update_all=True, source='yahoo',
                  start_date=dt.datetime(1970,1,1), end_date=dt.date.today()):
+    '''iterates through S&P500, collects start_date to end_date stock data for each
+    stock. saves each file as .csv to data/<ticker>/<ticker_ddmmyy.sv>'''
+    #TODO: if a file from today's date exists, skip the file.
+    
     if reload_sp500:
-        tickers = save_tickers()
+        tickers = save_tickers(returnTickers=True)
     else:
         with open("sp500tickers.pickle","wb") as f:
             tickers = pickle.load(f)
 
-    if not os.path.exists('stock_dfs'):
-        os.makedirs('stock_dfs')
+    today=dt.datetime.utcnow()
 
     for ticker in tickers:
+        tickerDir='../data/{}'.format(ticker)
+        fname='{}_{}.csv'.format(ticker, today.strftime('%d%m%Y'))
         print('{}\t: '.format(ticker), end="")
-        if (not os.path.exists('../data/{}.csv'.format(ticker))) or update_all:
+
+        if (not os.path.exists(tickerDir)) or update_all:
             try:
                 df = web.DataReader(ticker, source, start_date, end_date)
-                df.to_csv('../data/{}.csv'.format(ticker))
+                if not os.path.exists('../data/{}'.format(ticker)):
+                    # create dir if it doesnt exists
+                    os.makedirs(tickerDir)
+                df.to_csv('../data/{}/{}'.format(ticker, fname))
                 print('Success {}'.format(ticker))
             except RemoteDataError:
                 print('ERROR')
@@ -128,4 +136,3 @@ def saveScaled(data, n_in, n_out, ticker):
                 raise
     data.to_csv('{}/{}'.format(saveDir,fname), index=False)
     print('Successfully saved {}'.format(fname.upper()))
-    

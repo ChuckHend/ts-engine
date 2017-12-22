@@ -1,2 +1,5 @@
 .ipynb_checkpoints
 .csv
+data/*
+src/__pychache__/*
+*.pyc
