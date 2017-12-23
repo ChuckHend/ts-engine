@@ -9,7 +9,7 @@ import bs4 as bs
 import pickle
 import requests
 import csv
-
+import random
 
 
 def saveStock(data, ticker):
@@ -95,7 +95,7 @@ def get_mkt_data(reload_sp500=True,update_all=True, source='yahoo',
     '''iterates through S&P500, collects start_date to end_date stock data for each
     stock. saves each file as .csv to data/<ticker>/<ticker_ddmmyy.sv>'''
     #TODO: if a file from today's date exists, skip the file.
-    
+
     if reload_sp500:
         tickers = save_tickers(returnTickers=True)
     else:
@@ -136,3 +136,28 @@ def saveScaled(data, n_in, n_out, ticker):
                 raise
     data.to_csv('{}/{}'.format(saveDir,fname), index=False)
     print('Successfully saved {}'.format(fname.upper()))
+
+def latest_data(ticker):
+    files=os.listdir('../data/{}/'.format(ticker))
+    return files[-1]
+
+def join_tgt_spt(target_ticker='UNH', number_spt=10):
+    target_df=pd.read_csv('../data/{}/{}'.format(target_ticker,latest_data(target_ticker)),index_col=0)
+    # load tickers
+    tickers = os.listdir('../data')
+    #with open('../data/tickers/{}'.format(os.listdir('../data/tickers/')[-1]), 'r') as f:
+    #  reader = csv.reader(f)
+    #  tickers = list(reader)[0]
+
+    tickers.remove(target_ticker) # remove the targets folder name from the list
+    tickers.remove('tickers') # remove tickers folder name from list
+    tickers = random.sample(tickers, number_spt)
+    for ticker in tickers:
+        # load first df
+        df=pd.read_csv('../data/{}/{}'.format(ticker,latest_data(ticker)),index_col=0)
+        # rename columns
+        df.columns= [ticker + col for col in df.columns]
+        # join with target
+        target_df=target_df.join(df)
+
+    return target_df
