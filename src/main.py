@@ -10,16 +10,19 @@ import predicts
 
 ####TODO: reshaping so we can plot various n_in, n_out
 # model seems to work, but cant redim for plot
-ticker = 'unh'
+ticker = 'UNH'
 
 n_in = 50
 n_out = 30
 target = 'd1close'
 
 # load dataset
-dataset = getStocks.get_single(ticker=ticker, save=True)
-#dataset = getStocks.load_single(ticker)
-dataset.rename(columns={'Adj Close':'AdjCls'}, inplace=True)
+dataset = getStocks.join_tgt_spt(target_ticker=ticker, number_spt=25)
+dataset.reset_index(level=0, inplace=True)
+# dataset = getStocks.get_single(ticker=ticker, save=True)
+# dataset = getStocks.load_single(ticker)
+# dataset.rename(columns={'Adj Close':'AdjCls'}, inplace=True)
+
 ## Generate new features
 dataset = fe.derivative(dataset, drop_na = True)
 dataset = fe.weekDay(dataset)
@@ -43,7 +46,7 @@ dataset=dataset[features]
 
 # frame as supervised learning
 # this will be for scaling the data to the window scaled_in to scaled_out
-reframed=ps.series_to_supervised(dataset, n_in=n_in, n_out=n_out, 
+reframed=ps.series_to_supervised(dataset, n_in=n_in, n_out=n_out,
                                    features=features)
 
 # drop all but the 'target' from the predictor set
@@ -56,11 +59,11 @@ reframed=ps.frame_targets(reframed, features, n_out,target=target)
 
 #reframed=reframed.iloc[:10,:] #test/debug
 #dataset=reframed
-scaled=ps.scale_sequence(reframed, features, 
+scaled=ps.scale_sequence(reframed, features,
                          scaleTarget=True, target=target)
 
 #getStocks.saveScaled(scaled, n_in, n_out, ticker)
-# load scaled 
+# load scaled
 
 #scaled=pd.read_csv('../data/astc/astc_29092017_scaled_30_30.csv')
 
@@ -86,16 +89,16 @@ X_validation = ps.shape(X_validation, n_in=n_in, features=features)
 test_X = ps.shape(test_X, n_in=n_in, features=features)
 
 
-model = lstm.build_model(train_X, 
-                         timesteps=n_in, 
+model = lstm.build_model(train_X,
+                         timesteps=n_in,
                          inlayer=int(train_X.shape[-1]*10),
-                         hiddenlayers=[100], 
+                         hiddenlayers=[100],
                          outlayer=n_out)
 # fit network and save to history
-history = model.fit(train_X, train_y, 
-                    epochs=50, 
-                    batch_size=100, 
-                    validation_data=(X_validation, Y_validation), 
+history = model.fit(train_X, train_y,
+                    epochs=50,
+                    batch_size=100,
+                    validation_data=(X_validation, Y_validation),
                     verbose=2, shuffle=False)
 
 # plot history
