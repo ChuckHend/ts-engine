@@ -12,18 +12,18 @@ def frame_targets(dataset, features, n_out,target='Close'):
     # so take all features, less the one we want to predict
     dropList = list(features)
     dropList.remove(target)
-    
+
     # iterate over droplist, removing all columns in the droplist
     # for t....t+n...which will be t+n_in-1
     for feature in dropList:
         # iterate over n_out-1
         dataset.drop('{}(t)'.format(feature), axis=1, inplace=True)
-        
+
         # drop all t+ that arent our target feature
         for i in range(1,n_out):
             tfeat='{}(t+{:02})'.format(feature,i)
             dataset.drop(tfeat, axis=1, inplace=True)
-            
+
     return dataset
 
 
@@ -34,10 +34,10 @@ def get_filter_seq(features, n_in, n_out):
     featStrings=[]
     for feat in features:
         featStrings.append('{}(t)'.format(feat))
-        
+
         for x_in in range(1,n_in+1):
             featStrings.append('{}(t-{:02})'.format(feat, x_in))
-            
+
         for x_out in range(1,n_out): # t+1 would be n_out=2
             featStrings.append('{}(t+{:02})'.format(feat, x_out))
     return featStrings
@@ -48,7 +48,7 @@ def find(lst, a): # return index of match
 
 
 def scale_sequence(dataset, features, scaleTarget=True, target='Close'):
-       
+
     print('Scaling each sequence...')
     # accepts a reframed dataset (already in supervised time series)
     # scaled each observation, based on the data in the observation
@@ -58,21 +58,21 @@ def scale_sequence(dataset, features, scaleTarget=True, target='Close'):
 
     # seqfeats are the features in sequence form
     #NOTE: dataset.columns ARE in the correct time sequence!
-    
+
     ### DO A HARD COPY we want the order of the columns going out to be the same
     # order that they were coming in
     out_order=dataset.columns[:]
     seqfeats=dataset.columns
-    
+
     # do not scale the weekdays (they are already one-hot encoded)
-    days=['M','T','W','Th','F']    
+    days=['M','T','W','Th','F']
     vec= [False] * len(dataset.columns)
     for day in days:
         vec_i=seqfeats.to_series().str.contains(day)
         vec=np.logical_or(vec, vec_i)
-        
+
     excl_cols=list(seqfeats[vec])
-    
+
     # build list of columns to exclude from scaling
     # save the target features for positioning later
     tO='{}(t)'.format(target)
@@ -87,10 +87,10 @@ def scale_sequence(dataset, features, scaleTarget=True, target='Close'):
     # dataset=what we will be scaling by sequence
 
     dow=dataset[excl_cols] # the data that isnt being scaled
-    
+
     #then drop the days of week from the working dataset
     dataset=dataset.drop(excl_cols, axis=1) # data to be scaled
-    
+
     # create a dictionary for the variables we'll be iterating over
     colDict={}
     for feature in features:
@@ -98,24 +98,26 @@ def scale_sequence(dataset, features, scaleTarget=True, target='Close'):
         cols=dataset.columns.to_series().str.contains(feature)
         cols=dataset.columns[cols]
         colDict[feature]=cols
-    
-    scaled=pd.DataFrame(columns=dataset.columns)   
+
+    scaled=pd.DataFrame(columns=dataset.columns)
     for row in range(dataset.shape[0]): # row by row scaling each feature sequence
+        print(row)
+        print(dataset.shape)
         d=dataset.iloc[row,:]
-        d=pd.DataFrame(d.values.reshape(1,d.shape[0]), 
+        d=pd.DataFrame(d.values.reshape(1,d.shape[0]),
                        columns=dataset.columns)
         # iterate over each feature
         # scaling each feature against over all time in observation
-        
+
         # print the current status to console
         status=row/dataset.shape[0]
         sys.stdout.write("\r Progress....{}".format(round(status,2)))
         sys.stdout.flush()
-         
+
         featdf=pd.DataFrame()
         for feature in colDict: # level each feature in the row-sequence
             #select all the features with partial match
-            
+
             vec=colDict[feature]
             d1=d[vec]
             # reshape for minmaxscaler (needs to shape off columns)
@@ -126,17 +128,17 @@ def scale_sequence(dataset, features, scaleTarget=True, target='Close'):
                 pO=1
             else:
                 pO=float(shaped[0])
-                
+
             scal = [((float(p) / pO) - 1) for p in shaped]
             scal=pd.DataFrame(scal).T
             scal.columns=vec
             featdf=pd.concat([featdf, scal], axis=1)
-        
+
         scaled=scaled.append(featdf) # append the next row
-        
+
     scaled=scaled.reset_index(drop=True)
     dow=dow.reset_index(drop=True)
-    
+
     # need to make sure target variables get on the 'far right'
     if scaleTarget:
         # now move the target features to the right
@@ -145,7 +147,7 @@ def scale_sequence(dataset, features, scaleTarget=True, target='Close'):
         scaled=pd.concat([dow, scaled, tgt], axis=1)
     else:
         scaled=pd.concat([scaled, dow], axis=1)
-    
+
     scaled=scaled[out_order]
     print('Sequence scaling complete.')
     return scaled
@@ -153,11 +155,14 @@ def scale_sequence(dataset, features, scaleTarget=True, target='Close'):
 
 def shape(dataset, n_in, features):
     #Shape data for LSTM input
+    '''tensor should be (t-2)a, (t-2)b, (t-1)a, (t-1)b, etc.
+     where a and b are features to properly reshape'''
     shaped = dataset.reshape(dataset.shape[0], n_in, len(features))
     return shaped
 
 def unshape(dataset):
     #Convert from LSTM to 2 dimensional
+
     dim2 = dataset.shape[2] * dataset.shape[1]
     unshaped = dataset.reshape((dataset.shape[0], dim2))
     return unshaped
@@ -210,7 +215,7 @@ def single_batch(data_adj,pred_len=1):
 def unroll(data,sequence_length=24):
     result = []
     for index in range(len(data) - sequence_length):
-        # go to first row[index], select that row through -> sequence length 
+        # go to first row[index], select that row through -> sequence length
         result.append(data[index: index + sequence_length])
         # assign that selection to new array, all in the same row
         # move on to the next row in data, repeat
@@ -230,14 +235,12 @@ def normalise_windows(window_data):
 #    for x in range(1, n_in+1):
 #        seq.append(('(t-{:02})'.format(x)))
 #        seq=list(reversed(seq))
-#        
+#
 #    seq.append('(t)')
-#    
+#
 #    for x in range(1, n_out+1):
 #        seq.append(('(t+{:02})'.format(x)))
-#    
+#
 #    outdata=pd.DataFrame()
 #    for col in seq:
 #        d=data
-        
-    
