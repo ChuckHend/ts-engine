@@ -45,7 +45,7 @@ def load_data(filename, seq_len, normalise_window):
 
 
 def build_model(x_train, timesteps, inlayer, outlayer,
-                batch_size=None, hiddenlayers=0, dropout=0.3):
+                batch_size=None, hiddenlayers=0, dropout=0.3, loss_function='mean_absolute_percentage_error'):
     # outlayer is the number of predictions, days to predict
     # to run through before updating the weights
     # timesteps is the length of times, or length of the sequences
@@ -86,10 +86,10 @@ def build_model(x_train, timesteps, inlayer, outlayer,
     # output node   
     model.add(Dense(
         units=outlayer,
-        activation='linear'))
+        activation='tanh'))
 
     start = time.time()
-    model.compile(loss="mean_squared_error", optimizer="adam")
+    model.compile(loss=loss_function, optimizer="adam")
     print("Compilation Time : ", time.time() - start)
     model.summary()
 
