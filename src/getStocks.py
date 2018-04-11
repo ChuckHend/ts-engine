@@ -5,11 +5,25 @@ import datetime as dt
 import pandas as pd
 import pandas_datareader.data as web
 from pandas_datareader._utils import RemoteDataError
+import googlefinance.client as gf
 import bs4 as bs
 import pickle
 import requests
 import csv
 import random
+
+def get_tickers_index(sectors = ['Information Technology', 'Energy']):
+    data = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]
+    data.columns = [x.replace(' ','') for x in data.iloc[0,]]
+    data.drop(0, axis=0, inplace=True)
+    # append the index the ticker is listed on
+    ind = pd.read_csv('tickers.csv',header=None)
+    ind.columns=['Tickersymbol', 'dex']
+    data=data.merge(ind, on='Tickersymbol')
+    indices = [x in sectors for x in data.GICSSector]
+    data = data[indices][['Tickersymbol', 'dex']]
+    data=[tuple(x) for x in data.to_records(index=False)]
+    return data
 
 
 def saveStock(data, ticker):
@@ -62,7 +76,16 @@ def get_single(ticker='AAPL', source='yahoo', save=True,
             attempts += 1
             print('Error retrieving {}: attempt {}'.format(ticker.upper(), attempts))
 
+def get_tickers():
+    resp = requests.get('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
+    soup = bs.BeautifulSoup(resp.text, 'html.parser')
+    table = soup.find('table',{'class':'wikitable sortable'})
+    tickers =[]
+    for row in table.findAll('tr')[1:]:
+        ticker = row.findAll('td')[0].text
+        tickers.append(ticker)
 
+    return tickers
 
 def save_tickers(returnTickers=False):
     saveDir='../data/tickers'
