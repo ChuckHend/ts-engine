@@ -9,3 +9,4 @@ scikit-learn
 scipy
 bs4
 keras
+tensorflow-gpu
