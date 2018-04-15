@@ -167,6 +167,8 @@ def latest_data(ticker):
 def join_tgt_spt(target_ticker='UNH', number_spt=10):
     '''joins supporting stocks to target stock data...supporting stocks are treated
     as additional features to target stock'''
+
+    '''should be a df.merge(on='DATE') rather than df.join'''
     target_df=pd.read_csv('../data/{}/{}'.format(target_ticker,latest_data(target_ticker)),index_col=0)
     # load tickers
     tickers = os.listdir('../data')

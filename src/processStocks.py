@@ -50,8 +50,6 @@ def find(lst, a): # return index of match
 
 
 def scale_sequence(dataset, features, scaleTarget=True, target='Close'):
-
-    print('Scaling each sequence...')
     # accepts a reframed dataset (already in supervised time series)
     # scaled each observation, based on the data in the observation
     # on a feature by feature basis
