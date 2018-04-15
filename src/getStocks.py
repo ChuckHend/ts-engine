@@ -41,7 +41,7 @@ def saveStock(data, ticker):
     print('Successfully saved {}'.format(ticker.upper()))
 
 def load_single(ticker):
-    tickDir='../data/{}'.format(ticker)
+    tickDir='../data/{}'.format(ticker.upper())
     files=glob.glob('{}/*.csv'.format(tickDir))
 
     try:
@@ -54,7 +54,7 @@ def load_single(ticker):
             print('Problem reading file: {}'.format(files))
 
     except IOError:
-        print('No files found for {}'.format(ticker))
+        print('No files found for {}'.format(ticker.upper()))
 
 
 

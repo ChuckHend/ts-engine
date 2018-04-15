@@ -14,9 +14,9 @@ def onlineForecast(model, X, y, n_in=1, batch_size=1):
         testX = testX.reshape(1, n_in, X.shape[-1]) # (rows, n_in, features)
         yhat = model.predict(testX, batch_size=batch_size)
         print('>Expected=%.1f, Predicted=%.1f' % (testy, yhat))
-        
+
 def predict_point_by_point(model, data):
-    #Predict each timestep given the last sequence of true data, 
+    #Predict each timestep given the last sequence of true data,
     # only predicting 1 step ahead each time
     predicted = model.predict(data)
     predicted = np.reshape(predicted, (predicted.size,))
@@ -34,7 +34,7 @@ def predict_sequence_full(model, data, window_size):
 
 
 def predict_sequences_multiple(model, data, window_size, prediction_len):
-    #Predict sequence of 50 steps before shifting prediction run forward by 50 steps
+    #Predict sequence of n steps before shifting prediction run forward by 50 steps
     prediction_seqs = []
     for i in range(int(len(data)/prediction_len)):
         curr_frame = data[i*prediction_len]

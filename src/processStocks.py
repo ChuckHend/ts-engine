@@ -175,7 +175,6 @@ def series_to_supervised(data, features, n_in=1, n_out=1, dropnan=True):
     df = DataFrame(data)
     cols, names = list(), list()
     # input sequence (t-n, ... t-1)
-    print('starting Series to supverised conversion...')
     for i in range(n_in, 0, -1):
         cols.append(df.shift(i))
         names += [('{}(t-%02d)'.format(features[j]) % (i)) for j in range(n_vars)]

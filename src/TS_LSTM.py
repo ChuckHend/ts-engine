@@ -8,15 +8,14 @@ from keras.layers.core import Dense, Dropout
 from keras.layers.recurrent import LSTM
 from keras.models import Sequential
 
-def build_model(dataObj, batch_size=None, hiddenlayers=0, dropout=0.3,
-                loss_function='mean_absolute_percentage_error'):
+def build_model(dataObj, batch_size=None, inlayer=20, hiddenlayers=0, dropout=0.3,
+                loss_function='mean_absolute_percentage_error',
+                activation='tanh'):
     # outlayer is the number of predictions, days to predict
     # to run through before updating the weights
     # timesteps is the length of times, or length of the sequences
     # in each batch, input_dim is the number of features in each observation)
     input_dim = dataObj.train_X.shape[-1]
-
-    inlayer = int(dataObj.train_X.shape[-1]*.75)
 
     model = Sequential()
     # input layer
@@ -33,7 +32,7 @@ def build_model(dataObj, batch_size=None, hiddenlayers=0, dropout=0.3,
         units = inlayer,
         # output_dim=batch_size, #this might be wrong or need to be variable
         return_sequences=l1_seq,
-        activation='tanh'
+        activation=activation
         ))
     model.add(Dropout(dropout))
 
@@ -47,13 +46,13 @@ def build_model(dataObj, batch_size=None, hiddenlayers=0, dropout=0.3,
             model.add(LSTM(
                     units=layer,
                     return_sequences=seq,
-                    activation='tanh'))
+                    activation=activation))
             model.add(Dropout(dropout))
 
     # output node
     model.add(Dense(
         units=dataObj.n_out,
-        activation='tanh'))
+        activation=None))
 
     start = time.time()
     model.compile(loss=loss_function, optimizer="adam")
@@ -61,14 +60,6 @@ def build_model(dataObj, batch_size=None, hiddenlayers=0, dropout=0.3,
     model.summary()
 
     return model
-
-# def fit_model(model):
-# 	history = self.model.fit(self.train_X, self.train_y,
-# 		epochs=epochs, validation_data=(self.test_X, self.test_y),
-# 		verbose=2, shuffle=False)
-#
-# 	if plot:
-# 		vz.plot_loss(history)
 
 class ts_data():
 
@@ -82,7 +73,7 @@ class ts_data():
 	@classmethod
 	def default_prep(class_object, rawData, ticker, target, n_in=5, n_out=5):
 		obj = class_object(rawData=rawData, ticker=ticker, target=target, n_in=n_in, n_out=n_out)
-		obj.eng_features()
+		#obj.eng_features()
 		obj.roll_data()
 		obj.tscv()
 		return obj
@@ -93,6 +84,9 @@ class ts_data():
 
 		if weekdays:
 			self.data = fe.weekDay(self.data)
+		else:
+			self.data.drop('Date', axis=1, inplace=True)
+            
 
 		features = list(self.data.columns)
 
@@ -115,7 +109,7 @@ class ts_data():
 
 		self.data = reframed
 
-	def tscv(self,train=0.8):
+	def tscv(self,train=0.95):
 		# tscv - time series cross validation
 		rows = self.data.shape[0]
 		traincut = int(rows*train)
