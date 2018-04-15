@@ -10,6 +10,8 @@ import pandas as pd
 def frame_targets(dataset, features, n_out,target='Close'):
     # create the list of features we dont want to predict
     # so take all features, less the one we want to predict
+    # example: if we are trying to predict Close(t+1) and Close(t+2)
+    # we'll want to remove the variables labels Volume(t+1), Volume(t+2), etc.
     dropList = list(features)
     dropList.remove(target)
 
@@ -153,7 +155,7 @@ def scale_sequence(dataset, features, scaleTarget=True, target='Close'):
     return scaled
 
 
-def shape(dataset, n_in, features):
+def tensor_shape(dataset, n_in, features):
     #Shape data for LSTM input
     '''tensor should be (t-2)a, (t-2)b, (t-1)a, (t-1)b, etc.
      where a and b are features to properly reshape'''
