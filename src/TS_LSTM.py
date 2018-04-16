@@ -63,12 +63,14 @@ def build_model(dataObj, batch_size=None, inlayer=20, hiddenlayers=0, dropout=0.
 
 class ts_data():
 
-	def __init__(self, ticker, target, n_in=5, n_out=5, rawData=None):
+	def __init__(self, target, n_in=5, n_out=5, ticker=None, rawData=None):
 		self.data = rawData
 		self.n_in = n_in
 		self.n_out = n_out
 		self.ticker = ticker
 		self.target = target
+		self.features = rawData.columns
+
 
 	@classmethod
 	def default_prep(class_object, rawData, ticker, target, n_in=5, n_out=5):
@@ -86,7 +88,7 @@ class ts_data():
 			self.data = fe.weekDay(self.data)
 		else:
 			self.data.drop('Date', axis=1, inplace=True)
-            
+
 
 		features = list(self.data.columns)
 
