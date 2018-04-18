@@ -4,7 +4,8 @@ import pandas as pd
 import predicts
 import matplotlib.pyplot as plt
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+#os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+#os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
 n_in = 100
 n_out = 100
@@ -32,7 +33,7 @@ ts_model = ts_lstm.build_model(ts_data,
                                activation='tanh')
 # fit the model
 history = ts_model.fit(ts_data.train_X, ts_data.train_y,
-                    epochs=10,
+                    epochs=15,
                     batch_size=1024,
                     validation_data=(ts_data.test_X, ts_data.test_y),
                     verbose=2,

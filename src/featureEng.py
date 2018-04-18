@@ -40,14 +40,3 @@ def normalise_windows(window_data):
         normalised_window = [((float(p) / float(window[0])) - 1) for p in window]
         normalised_data.append(normalised_window)
     return normalised_data
-
-def z_score(data):
-    data_adj = data
-    # z-score method. Normalizes by 'column' of data frame.
-    data = data.apply(lambda x: (x - np.mean(x)) / np.std(x))
-    for i in range(0,data.index.shape[0]):
-        # take first row, convert date to ordinal form
-        data_adj.loc[data.index[i],'Ordinal/1e6'] = data.index[i].to_pydatetime().toordinal()/1e6
-        # and add weekday field
-        data_adj.loc[data.index[i],'Weekday']     = data.index[i].to_pydatetime().weekday()
-    return data

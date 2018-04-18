@@ -2,13 +2,25 @@ import pandas as pd
 import getStocks as gs
 import saveData
 import googlefinance.client as gf
+import sys
+
+'''Usage:
+python monitor.py <period>
+
+where <period> is ("1d", "2d", "1w", "1m", etc)
+'''
+
+if len(sys.argv) > 1:
+    period = str(sys.argv[1])
+else:
+    print('[ERROR] Enter time period parameter, ie 1d, 2d, 1m, etc. .\n eg. . . python monitor.py 1d ')
+    sys.exit()
 
 
 tickers=gs.get_tickers_index()
 saveDir = '../data/30_second'
 
-
-def save_stocks(data=tickers,saveDir=saveDir,interval="60",period="1d"):
+def save_stocks(data=tickers,saveDir=saveDir,interval="60",period=period):
     saveData.check_make_dir(saveDir)
     for ticker, dex in data:
         param = {'q': ticker,
@@ -21,3 +33,10 @@ def save_stocks(data=tickers,saveDir=saveDir,interval="60",period="1d"):
         fname = '/{}_{}_{}.csv'.format(ticker, minDate, maxDate)
         df.to_csv(saveDir + fname)
         print('{} complete'.format(ticker))
+
+def main():
+    save_stocks(period=period)
+
+if __name__ == "__main__":
+    main()
+
