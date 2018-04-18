@@ -13,7 +13,8 @@ where <period> is ("1d", "2d", "1w", "1m", etc)
 if len(sys.argv) > 1:
     period = str(sys.argv[1])
 else:
-    print('[ERROR] Enter time period parameter, ie 1d, 2d, 1m, etc. .\n eg. . . python monitor.py 1d ')
+    period = '1d'
+    print('Retrieving prior {} of data, by default.'.format(period))
     sys.exit()
 
 
