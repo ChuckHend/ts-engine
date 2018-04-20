@@ -7,10 +7,11 @@ import numpy as np
 from keras.layers.core import Dense, Dropout
 from keras.layers.recurrent import LSTM
 from keras.models import Sequential
+from keras.utils import multi_gpu_model
 
 def lstm_model(dataObj, batch_size=None, inlayer=20, hiddenlayers=0, dropout=0.3,
                 loss_function='mean_absolute_percentage_error',
-                activation='tanh'):
+                activation='tanh',gpus=1):
     # outlayer is the number of predictions, days to predict
     # to run through before updating the weights
     # timesteps is the length of times, or length of the sequences
@@ -55,6 +56,9 @@ def lstm_model(dataObj, batch_size=None, inlayer=20, hiddenlayers=0, dropout=0.3
         activation=None))
 
     start = time.time()
+    if gpus > 1:
+        model = multi_gpu_model(model, gpus=gpus)
+
     model.compile(loss=loss_function, optimizer="adam")
     print("Compilation Time : ", time.time() - start)
     model.summary()
