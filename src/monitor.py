@@ -1,6 +1,6 @@
 import pandas as pd
 import getStocks as gs
-import saveData
+import utility.saveData as saveData
 import googlefinance.client as gf
 import sys
 
@@ -39,4 +39,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
