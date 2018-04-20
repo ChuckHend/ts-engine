@@ -168,7 +168,6 @@ def join_tgt_spt(target_ticker='UNH', number_spt=10):
     '''joins supporting stocks to target stock data...supporting stocks are treated
     as additional features to target stock'''
 
-    '''should be a df.merge(on='DATE') rather than df.join'''
     target_df=pd.read_csv('../data/{}/{}'.format(target_ticker,latest_data(target_ticker)),index_col=0)
     # load tickers
     tickers = os.listdir('../data')
@@ -184,7 +183,7 @@ def join_tgt_spt(target_ticker='UNH', number_spt=10):
         df=pd.read_csv('../data/{}/{}'.format(ticker,latest_data(ticker)),index_col=0)
         # rename columns
         df.columns= [ticker + col for col in df.columns]
-        # join with target
-        target_df=target_df.join(df)
+        # join with target (merging on index, which is the Date)
+        target_df=target_df.merge(df, how='outer', left_index=True, right_index=True)
 
-    return target_df
+    return target_df.reset_index()

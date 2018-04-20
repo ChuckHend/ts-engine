@@ -14,5 +14,3 @@ tickers = {key:[] for key in tickers}
 
 for file in files:
     tickers[strip_ticker(file)].append(file)
-
-

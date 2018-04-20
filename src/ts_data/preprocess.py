@@ -2,16 +2,17 @@
 from sklearn.preprocessing import MinMaxScaler
 import sys
 import numpy as np
-from pandas import DataFrame
-from pandas import concat
 import pandas as pd
 
 
 def frame_targets(dataset, features, n_out,target='Close'):
-    # create the list of features we dont want to predict
-    # so take all features, less the one we want to predict
-    # example: if we are trying to predict Close(t+1) and Close(t+2)
-    # we'll want to remove the variables labels Volume(t+1), Volume(t+2), etc.
+    '''create the list of features we dont want to predict
+    so take all features, less the one we want to predict
+    example: if we are trying to predict a stock's closing price, two days into the future,
+    Close(t+1) and Close(t+2), we'll want to remove the variables labels
+    Volume(t+1), Volume(t+2), etc.
+    TODO: should this be done in timeseries_to_supervised() ?
+    '''
     dropList = list(features)
     dropList.remove(target)
 
@@ -28,11 +29,9 @@ def frame_targets(dataset, features, n_out,target='Close'):
 
     return dataset
 
-
-
 def get_filter_seq(features, n_in, n_out):
     # creates the vector of columns we want from the outer scaled dataset
-    # outer being a set of t-n to t+n
+    # 'outer' is a set of t-n to t+n
     featStrings=[]
     for feat in features:
         featStrings.append('{}(t)'.format(feat))
@@ -172,7 +171,7 @@ def unshape(dataset):
 def series_to_supervised(data, features, n_in=1, n_out=1, dropnan=True):
     n_vars = 1 if type(data) is list else data.shape[1]
 
-    df = DataFrame(data)
+    df = pd.DataFrame(data)
     cols, names = list(), list()
     # input sequence (t-n, ... t-1)
     for i in range(n_in, 0, -1):
@@ -186,7 +185,7 @@ def series_to_supervised(data, features, n_in=1, n_out=1, dropnan=True):
         else:
             names += [('{}(t+%02d)'.format(features[j]) % (i)) for j in range(n_vars)]
     # put it all together
-    agg = concat(cols, axis=1)
+    agg = pd.concat(cols, axis=1)
     agg.columns = names
     # drop rows with NaN values
     if dropnan:
@@ -227,19 +226,3 @@ def normalise_windows(window_data):
         normalised_window = [((float(p) / float(window[0])) - 1) for p in window]
         normalised_data.append(normalised_window)
     return normalised_data
-
-#def timeOrder(data, n_in, n_out):
-#    # make a sequence that the features should be in
-#    seq=[]
-#    for x in range(1, n_in+1):
-#        seq.append(('(t-{:02})'.format(x)))
-#        seq=list(reversed(seq))
-#
-#    seq.append('(t)')
-#
-#    for x in range(1, n_out+1):
-#        seq.append(('(t+{:02})'.format(x)))
-#
-#    outdata=pd.DataFrame()
-#    for col in seq:
-#        d=data
