@@ -15,7 +15,6 @@ if len(sys.argv) > 1:
 else:
     period = '1d'
     print('Retrieving prior {} of data, by default.'.format(period))
-    sys.exit()
 
 
 tickers=gs.get_tickers_index()
