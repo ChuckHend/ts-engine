@@ -10,7 +10,7 @@ class ts_data():
 		self.n_out = n_out
 		self.ticker = ticker
 		self.target = target
-		self.features = rawData.columns
+		self.features = list(rawData.columns)
 
 	@classmethod
 	def default_prep(class_object, rawData, ticker, target, n_in=5, n_out=5):
@@ -48,6 +48,7 @@ class ts_data():
 									features=self.features,
 									n_out=self.n_out,
 									target=self.target)
+		print('Total Supervised Learning Records: {}'.format(reframed.shape[0]))
 
 		self.data = reframed
 

@@ -87,6 +87,17 @@ def get_tickers():
 
     return tickers
 
+def get_tickers_industry():
+    exchanges = ['nasdaq', 'nyse', 'amex']
+    df = pd.DataFrame()
+    for ex in exchanges:
+        print('Retrieving {}. . .'.format(ex))
+        d = pd.read_csv('https://www.nasdaq.com/screening/companies-by-name.aspx?letter=0&exchange={}&render=download'.format(ex))
+        d['Unnamed: 8']=ex
+        d.rename(columns={'Unnamed: 8': 'exchange'}, inplace=True)
+        df = pd.concat([df, d])
+    return df
+
 def save_tickers(returnTickers=False):
     saveDir='../data/tickers'
     today=dt.datetime.utcnow()
@@ -164,26 +175,80 @@ def latest_data(ticker):
     files=os.listdir('../data/{}/'.format(ticker))
     return files[-1]
 
-def join_tgt_spt(target_ticker='UNH', number_spt=10):
+def join_tgt_spt(target_ticker='UNH', rnd_spt=10, industry=None, exclude=None):
     '''joins supporting stocks to target stock data...supporting stocks are treated
     as additional features to target stock'''
 
-    target_df=pd.read_csv('../data/{}/{}'.format(target_ticker,latest_data(target_ticker)),index_col=0)
-    # load tickers
-    tickers = os.listdir('../data')
-    #with open('../data/tickers/{}'.format(os.listdir('../data/tickers/')[-1]), 'r') as f:
-    #  reader = csv.reader(f)
-    #  tickers = list(reader)[0]
+    target_df=pd.read_csv('../data/{}/{}'.format(target_ticker,
+        latest_data(target_ticker)),index_col=0)
 
-    tickers.remove(target_ticker) # remove the targets folder name from the list
-    tickers.remove('tickers') # remove tickers folder name from list
-    tickers = random.sample(tickers, number_spt)
+    if industry:
+        if not isinstance(industry, list):
+            industry = list(industry)
+
+        indPath = '../data/tickers/tickers_w_industry.csv'
+
+        # read from file if exists, else get the updated list from web
+        if os.path.exists(indPath):
+            tickers = pd.read_csv(indPath, index_col=0)
+        else:
+            tickers = get_tickers_industry()
+
+        # get the tickers in 'industry'
+        tickers = tickers[[x in industry for x in tickers.industry]][['Symbol']]
+
+        # remove target (already loaded and anything in our exlcude list)
+        remove_list = list(target_ticker) + list(exclude)
+        tickers = [x for x in tickers.Symbol if x not in remove_list]
+
+        #tickers = tickers[tickers.Symbol != target_ticker].Symbol
+
+    else: 
+        tickers = os.listdir('../data')
+        tickers.remove(target_ticker) # remove the targets folder name from the list
+        tickers.remove('tickers') # remove tickers folder name from list
+        tickers = random.sample(tickers, rnd_spt)
+
     for ticker in tickers:
-        # load first df
-        df=pd.read_csv('../data/{}/{}'.format(ticker,latest_data(ticker)),index_col=0)
-        # rename columns
-        df.columns= [ticker + col for col in df.columns]
-        # join with target (merging on index, which is the Date)
-        target_df=target_df.merge(df, how='outer', left_index=True, right_index=True)
+        fpath = '../data/{}'.format(ticker)
+        if os.path.exists(fpath):
+            # load first df
+            df=pd.read_csv('../data/{}/{}'.format(ticker,latest_data(ticker)),index_col=0)
+            
+            # merge on index, ie. date
+            target_df=target_df.join(df, how='outer', rsuffix=ticker)
 
+    target_df.dropna(axis=0, inplace=True)
+
+    print('Join resulted in {} complete records.'.format(target_df.shape[0]))
     return target_df.reset_index()
+
+def get_refresh(ticker_df,interval='1d',period='10y'):
+    '''ticker_df is a dataframe with two columns. The first being the ticker and
+    the second being the exchange or index'''
+    data = [tuple(x) for x in ticker_df.to_records(index=False)]
+
+    for ticker, dex in data:
+        
+        param = {'q': ticker,
+                 'i': str(interval), # in seconds, 60 in the minimum
+                 'x': dex,
+                 'p': str(period)} # past
+        print('Trying {}, {}'.format(ticker, dex))
+        df = pd.DataFrame(gf.get_price_data(param))
+        if df.shape[0] > 1:
+            maxDate = str(max(df.index)).replace(':','')
+            minDate = str(min(df.index)).replace(':','')
+            fname = '/{}_{}_{}.csv'.format(ticker.upper(), minDate, maxDate)
+            saveDir='../data/{}'.format(ticker)
+            if not os.path.exists(saveDir):
+                try:
+                    os.makedirs(saveDir)
+                except OSError as e:
+                    if e.errno != errno.EEXIST:
+                        raise
+            df.to_csv('{}/{}'.format(saveDir, fname))
+        else:
+            print('{} no data. . .'.format(ticker))
+
+        print('Successfully saved {}'.format(ticker.upper()))
