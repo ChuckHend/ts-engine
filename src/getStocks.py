@@ -93,7 +93,11 @@ def get_tickers_industry():
     for ex in exchanges:
         print('Retrieving {}. . .'.format(ex))
         d = pd.read_csv('https://www.nasdaq.com/screening/companies-by-name.aspx?letter=0&exchange={}&render=download'.format(ex))
-        d['Unnamed: 8']=ex
+        
+        if ex=='nasdaq':
+            d['Unnamed: 8']='NASD'
+        else:
+            d['Unnamed: 8']=ex.upper()
         d.rename(columns={'Unnamed: 8': 'exchange'}, inplace=True)
         df = pd.concat([df, d])
     return df

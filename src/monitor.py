@@ -16,8 +16,9 @@ else:
     period = '1d'
     print('Retrieving prior {} of data, by default.'.format(period))
 
-
-tickers=gs.get_tickers_index()
+tickers=gs.get_tickers_industry()
+tickers=tickers[['Symbol','exchange']]
+tickers=[tuple(x) for x in tickers.to_records(index=False)]
 saveDir = '../data/30_second'
 
 def save_stocks(data=tickers,saveDir=saveDir,interval="60",period=period):
@@ -28,17 +29,20 @@ def save_stocks(data=tickers,saveDir=saveDir,interval="60",period=period):
                  'x': dex,
                  'p': str(period)} # past
         df = pd.DataFrame(gf.get_price_data(param))
-        if df.shape[0] > 0:
+
+        recs = df.shape[0]
+
+        if recs > 0:
             maxDate = str(max(df.index)).replace(':','')
             minDate = str(min(df.index)).replace(':','')
             fname = '/{}_{}_{}.csv'.format(ticker, minDate, maxDate)
             df.to_csv(saveDir + fname)
-            print('{} complete'.format(ticker))
+            print('{} complete {} records'.format(ticker, recs))
         else:
             print('No records for {}'.format(ticker))
 
 def main():
-    save_stocks(period=period)
+    save_stocks(data=tickers, period=period)
 
 if __name__ == "__main__":
     main()
