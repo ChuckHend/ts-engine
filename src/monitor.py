@@ -28,11 +28,14 @@ def save_stocks(data=tickers,saveDir=saveDir,interval="60",period=period):
                  'x': dex,
                  'p': str(period)} # past
         df = pd.DataFrame(gf.get_price_data(param))
-        maxDate = str(max(df.index)).replace(':','')
-        minDate = str(min(df.index)).replace(':','')
-        fname = '/{}_{}_{}.csv'.format(ticker, minDate, maxDate)
-        df.to_csv(saveDir + fname)
-        print('{} complete'.format(ticker))
+        if df.shape[0] > 0:
+            maxDate = str(max(df.index)).replace(':','')
+            minDate = str(min(df.index)).replace(':','')
+            fname = '/{}_{}_{}.csv'.format(ticker, minDate, maxDate)
+            df.to_csv(saveDir + fname)
+            print('{} complete'.format(ticker))
+        else:
+            print('No records for {}'.format(ticker))
 
 def main():
     save_stocks(period=period)
