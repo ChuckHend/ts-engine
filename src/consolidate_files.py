@@ -1,11 +1,11 @@
 import glob
 
 
-fdir = '../data/30_second/'
+fdir = '../data/60_second/'
 
 files = glob.glob(fdir + '*')
 
-def strip_ticker(s):
+def strip_ticker(s, fdir):
     return s.strip(fdir).split('_')[0]
 
 tickers = list(set([strip_ticker(x) for x in files]))

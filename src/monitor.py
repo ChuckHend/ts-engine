@@ -19,7 +19,7 @@ else:
 tickers=gs.get_tickers_industry()
 tickers=tickers[['Symbol','exchange']]
 tickers=[tuple(x) for x in tickers.to_records(index=False)]
-saveDir = '../data/30_second'
+saveDir = '../data/60_second'
 
 def save_stocks(data=tickers,saveDir=saveDir,interval="60",period=period):
     saveData.check_make_dir(saveDir)
