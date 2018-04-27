@@ -1,5 +1,6 @@
 import pandas as pd
 import getStocks as gs
+import json
 import utility.saveData as saveData
 import googlefinance.client as gf
 import sys
@@ -16,10 +17,25 @@ else:
     period = '1d'
     print('Retrieving prior {} of data, by default.'.format(period))
 
-tickers=gs.get_tickers_industry()
+with open('stock_config.json') as f:
+    config = json.loads(f.read())
+
+if 'sector' in config.keys():
+    sector = config['sector']
+else:
+    sector='all'
+
+if 'industry' in config.keys():
+    industry = config['industry']
+else:
+    industry='all'
+
+tickers=gs.get_tickers_industry_sector(sector=sector, industry=industry)
 tickers=tickers[['Symbol','exchange']]
 tickers=[tuple(x) for x in tickers.to_records(index=False)]
 saveDir = '../data/60_second'
+
+print('Fetching\n Sectors: {} n\ Industries: {}'.format(sector, industry))
 
 def save_stocks(data=tickers,saveDir=saveDir,interval="60",period=period):
     saveData.check_make_dir(saveDir)
