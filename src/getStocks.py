@@ -3,6 +3,7 @@
 import os, errno, glob
 import datetime as dt
 import pandas as pd
+import numpy as np
 import pandas_datareader.data as web
 from pandas_datareader._utils import RemoteDataError
 import googlefinance.client as gf
@@ -87,20 +88,46 @@ def get_tickers():
 
     return tickers
 
-def get_tickers_industry():
+def get_tickers_industry_sector(sector='all', industry='all'):
+    '''get a list of tickers and their exchange by specifying an industry and/or sectors
+    if either or both are ommitted, the list will include all values'''
+
+    if not isinstance(sector, list):
+        s=[]
+        s.append(sector)
+    else:
+        s=sector
+
+    if not isinstance(industry, list):
+        i=[]
+        i.append(industry)
+    else:
+        i=industry
+
     exchanges = ['nasdaq', 'nyse', 'amex']
     df = pd.DataFrame()
     for ex in exchanges:
         print('Retrieving {}. . .'.format(ex))
         d = pd.read_csv('https://www.nasdaq.com/screening/companies-by-name.aspx?letter=0&exchange={}&render=download'.format(ex))
-        
+
         if ex=='nasdaq':
             d['Unnamed: 8']='NASD'
         else:
             d['Unnamed: 8']=ex.upper()
         d.rename(columns={'Unnamed: 8': 'exchange'}, inplace=True)
         df = pd.concat([df, d])
-    return df
+
+    # apply filters
+    if sector == 'all':
+        sec = [True for x in df.Sector]
+    else:
+        sec = [x in s for x in df.Sector]
+    if industry == 'all':
+        ind = [True for x in df. industry]
+    else:
+        ind = [x in i for x in df.industry]
+
+    return df[np.logical_and(sec, ind)]
 
 def save_tickers(returnTickers=False):
     saveDir='../data/tickers'
@@ -207,7 +234,7 @@ def join_tgt_spt(target_ticker='UNH', rnd_spt=10, industry=None, exclude=None):
 
         #tickers = tickers[tickers.Symbol != target_ticker].Symbol
 
-    else: 
+    else:
         tickers = os.listdir('../data')
         tickers.remove(target_ticker) # remove the targets folder name from the list
         tickers.remove('tickers') # remove tickers folder name from list
@@ -218,7 +245,7 @@ def join_tgt_spt(target_ticker='UNH', rnd_spt=10, industry=None, exclude=None):
         if os.path.exists(fpath):
             # load first df
             df=pd.read_csv('../data/{}/{}'.format(ticker,latest_data(ticker)),index_col=0)
-            
+
             # merge on index, ie. date
             target_df=target_df.join(df, how='outer', rsuffix=ticker)
 
@@ -233,7 +260,7 @@ def get_refresh(ticker_df,interval='1d',period='10y'):
     data = [tuple(x) for x in ticker_df.to_records(index=False)]
 
     for ticker, dex in data:
-        
+
         param = {'q': ticker,
                  'i': str(interval), # in seconds, 60 in the minimum
                  'x': dex,
