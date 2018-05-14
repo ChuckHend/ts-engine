@@ -1,9 +1,10 @@
 import pandas as pd
 import getStocks as gs
 import json
+import datetime
 import utility.saveData as saveData
 import googlefinance.client as gf
-import sys
+import sys, os
 
 '''Usage:
 python monitor.py <period>
@@ -53,12 +54,34 @@ def save_stocks(data=tickers,saveDir=saveDir,interval="60",period=period):
             minDate = str(min(df.index)).replace(':','')
             fname = '/{}_{}_{}.csv'.format(ticker, minDate, maxDate)
             df.to_csv(saveDir + fname)
-            print('{} complete {} records'.format(ticker, recs))
+            outStr = '{} complete {} records'.format(ticker, recs)
+            print(outStr)
+            log(outStr)
         else:
-            print('No records for {}'.format(ticker))
+            outStr = 'No records for {}'.format(ticker)
+            print(outStr)
+            log(outStr)
+
+
+def log(log_entry):
+    fname = 'monitor.log'
+    
+    if os.path.exists(fname):
+        append_write = 'a' # append if already exists
+    else:
+        append_write = 'w' # make a new file if not
+
+    f = open(fname, append_write)
+
+    time = str(datetime.datetime.now()).split('.')[0]
+
+    f.write(time + ',' + str(log_entry) + '\n')
+    f.close()
+
 
 def main():
     save_stocks(data=tickers, period=period)
+
 
 if __name__ == "__main__":
     main()
