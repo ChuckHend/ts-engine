@@ -4,17 +4,17 @@ from ts_data import preprocess as ps
 
 class ts_data():
 
-	def __init__(self, target, n_in=5, n_out=5, ticker=None, rawData=None):
+	def __init__(self, target, n_in=5, n_out=5, entityID=None, rawData=None):
 		self.data = rawData
 		self.n_in = n_in
 		self.n_out = n_out
-		self.ticker = ticker
+		self.entityID = entityID
 		self.target = target
 		self.features = list(rawData.columns)
 
 	@classmethod
-	def default_prep(class_object, rawData, ticker, target, n_in=5, n_out=5):
-		obj = class_object(rawData=rawData, ticker=ticker, target=target, n_in=n_in, n_out=n_out)
+	def default_prep(class_object, rawData, entityID, target, n_in=5, n_out=5):
+		obj = class_object(rawData=rawData, entityID=entityID, target=target, n_in=n_in, n_out=n_out)
 		#obj.eng_features()
 		obj.roll_data()
 		obj.tscv()
