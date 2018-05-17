@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup
 
 setup(name='forecast-engine',
       version='0.1dev',
@@ -10,8 +10,8 @@ setup(name='forecast-engine',
       url='https://github.com/ChuckHend/forecast-engine',
       packages=['src'],
       install_requires=[
-      	'os', 
-      	'time', 
+      	# 'os', 
+      	# 'time', 
       	'datetime', 
       	'numpy', 
       	'pandas', 
