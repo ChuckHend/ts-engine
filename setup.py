@@ -8,6 +8,6 @@ setup(name='forecast-engine',
       author='Adam Hendel',
       author_email='hendel.adam@gmail.com',
       url='https://github.com/ChuckHend/forecast-engine',
-      packages=['distutils', 'distutils.command'],
+      packages=['src'],
       license='GNU General Public License v3.0'
      )
