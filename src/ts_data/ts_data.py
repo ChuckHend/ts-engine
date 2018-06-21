@@ -39,17 +39,17 @@ class ts_data():
         self.data = self.data[self.features]
 
     def roll_data(self):
-        print('Processing: series_to_supervised()')
+        print('\nProcessing: series_to_supervised()')
         reframed = ps.series_to_supervised(self.data,
                                            features=self.features,
                                            n_in=self.n_in,
                                            n_out=self.n_out)
-        print('Processing: frame_targets()')
+        print('\nProcessing: frame_targets()')
         reframed = ps.frame_targets(reframed,
                                     features=self.features,
                                     n_out=self.n_out,
                                     target=self.target)
-        print('Total Supervised Learning Records: {}'.format(reframed.shape[0]))
+        print('\nTotal Supervised Learning Records: {}'.format(reframed.shape[0]))
 
         self.data = reframed
 

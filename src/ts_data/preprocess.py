@@ -18,20 +18,31 @@ def frame_targets(dataset, features, n_out,target='Close'):
 
     # iterate over droplist, removing all columns in the droplist
     # for t....t+n...which will be t+n_in-1
+
+    ## added for test ##
+    tfeat=[]
+    ####
+
     for j, feature in enumerate(dropList):
         # iterate over n_out-1
         
-        dataset.drop('{}(t)'.format(feature), axis=1, inplace=True)
+        # dataset.drop('{}(t)'.format(feature), axis=1, inplace=True)
+        tfeat.append('{}(t)'.format(feature))
 
         # drop all t+ that arent our target feature
+        #for i in range(1,n_out):
+        #    tfeat='{}(t+{:02})'.format(feature,i)
+        #    dataset.drop(tfeat, axis=1, inplace=True)
+        
         for i in range(1,n_out):
-            tfeat='{}(t+{:02})'.format(feature,i)
-            dataset.drop(tfeat, axis=1, inplace=True)
+            tfeat.append('{}(t+{:02})'.format(feature,i))
 
-        status = round(j/length(dropList),4)
+        status = round(j/len(dropList),4)
         sys.stdout.write("\r Progress....{}".format(round(status,2)))
         sys.stdout.flush()
 
+    dataset.drop(tfeat, axis=1, inplace=True)
+    print('\nframe_targets() complete')
     return dataset
 
 def get_filter_seq(features, n_in, n_out):
@@ -179,7 +190,7 @@ def series_to_supervised(data, features, n_in=1, n_out=1, dropnan=True):
     df = pd.DataFrame(data)
     cols, names = list(), list()
     # input sequence (t-n, ... t-1)
-    print('Processing input sequences')    
+    print('\nProcessing input sequences')    
     for i in range(n_in, 0, -1):
         cols.append(df.shift(i))
         names += [('{}(t-%02d)'.format(features[j]) % (i)) for j in range(n_vars)]
@@ -187,7 +198,7 @@ def series_to_supervised(data, features, n_in=1, n_out=1, dropnan=True):
         sys.stdout.write("\r Progress....{}".format(round(status,2)))
         sys.stdout.flush()
     # forecast sequence (t, t+1, ... t+n)
-    print('Processing output sequences') 
+    print('\nProcessing output sequences') 
     for i in range(0, n_out):
         cols.append(df.shift(-i))
         if i == 0:
