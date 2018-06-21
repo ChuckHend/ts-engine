@@ -13,17 +13,17 @@ n_in = 360 # number of timesteps as input
 n_out = 360 # number of timesteps as output
 target = 'close_AMD'
 
-dataset = pd.read_csv('/path/AMD_plus_100.csv')
+dataset = pd.read_csv('../../data/AMD_plus_50.csv')
 
 ## might need to remove these if its already in data prep
 # ie. row 1 is Jan 1, row 2 in Jan 2.
-dataset.sort_values('dtg', inplace=True)
+# dataset.sort_values('dtg', inplace=True)
 # and do a forward fill
-dataset.fillna(method='ffill', inplace=True)
+# dataset.fillna(method='ffill', inplace=True)
 # then drop the NA
-dataset.dropna(inplace=True)
+# dataset.dropna(inplace=True)
 # rename dtg to date for TS package
-dataset.rename(columns={'dtg':'Date'}, inplace=True)
+# dataset.rename(columns={'dtg':'Date'}, inplace=True)
 ###
 
 ts_data = ts(n_in=n_in, 
@@ -68,7 +68,7 @@ test_Y = ts_data.test_y[-1]
 yhat = ts_model.predict(test_X.reshape(1, test_X.shape[-2], test_X.shape[-1]))
 
 def mse(y, yhat):
-    return np.mean((y=yhat)**2)
+    return np.mean((y-yhat)**2)
 
 error_metric = mse(test_Y, yhat)
 
