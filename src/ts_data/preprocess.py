@@ -18,14 +18,19 @@ def frame_targets(dataset, features, n_out,target='Close'):
 
     # iterate over droplist, removing all columns in the droplist
     # for t....t+n...which will be t+n_in-1
-    for feature in dropList:
+    for j, feature in enumerate(dropList):
         # iterate over n_out-1
+        
         dataset.drop('{}(t)'.format(feature), axis=1, inplace=True)
 
         # drop all t+ that arent our target feature
         for i in range(1,n_out):
             tfeat='{}(t+{:02})'.format(feature,i)
             dataset.drop(tfeat, axis=1, inplace=True)
+
+        status = round(j/length(dropList),4)
+        sys.stdout.write("\r Progress....{}".format(round(status,2)))
+        sys.stdout.flush()
 
     return dataset
 
