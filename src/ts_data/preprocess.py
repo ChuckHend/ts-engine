@@ -174,16 +174,24 @@ def series_to_supervised(data, features, n_in=1, n_out=1, dropnan=True):
     df = pd.DataFrame(data)
     cols, names = list(), list()
     # input sequence (t-n, ... t-1)
+    print('Processing input sequences')    
     for i in range(n_in, 0, -1):
         cols.append(df.shift(i))
         names += [('{}(t-%02d)'.format(features[j]) % (i)) for j in range(n_vars)]
-	# forecast sequence (t, t+1, ... t+n)
+        status = round(i/n_in,2)
+        sys.stdout.write("\r Progress....{}".format(round(status,2)))
+        sys.stdout.flush()
+    # forecast sequence (t, t+1, ... t+n)
+    print('Processing output sequences') 
     for i in range(0, n_out):
         cols.append(df.shift(-i))
         if i == 0:
             names += [('{}(t)'.format(features[j])) for j in range(n_vars)]
         else:
             names += [('{}(t+%02d)'.format(features[j]) % (i)) for j in range(n_vars)]
+        status = round(i/n_out,2)
+        sys.stdout.write("\r Progress....{}".format(round(status,2)))
+        sys.stdout.flush()        
     # put it all together
     agg = pd.concat(cols, axis=1)
     agg.columns = names
