@@ -3,6 +3,14 @@ import pandas as pd
 import numpy as np
 import random, sys
 
+# queries archbox or sql db for data
+# transforms the stock data from long to wide
+# each row becomes a single date/time
+# columns are created for all the stocks
+
+# call this script from command line
+# saves a transformed dataframe in .csv at the end of main()
+# to ./<target>_plus_<n_predictors>.csv
 
 def validateInput():
     if len(sys.argv) != 3:
@@ -26,7 +34,8 @@ def prune_list(outcome, ticks, n_predictors):
 def query_db(outcome, n_predictors):
 
     # setup engine to archbox psql database
-    arch_engine = create_engine("postgresql://<user>:<pass>@192.168.0.2:5432/sampalytics")
+    #arch_engine = create_engine("postgresql://<user>:<pass>@192.168.0.2:5432/sampalytics")
+    arch_engine = create_engine("postgresql://localhost@192.168.0.2:5432/sampalytics")
 
     # get list of tickers in our db
     tickers = arch_engine.engine.execute('SELECT DISTINCT ticker from stocks.minute').fetchall()
@@ -67,7 +76,7 @@ def main():
 
     df = query_db(outcome=target, n_predictors=n_predictors)
 
-    df.to_csv('/mnt/ubudata/projects/data/{}_plus_{}.csv'.format(target, n_predictors),index=None)
+    df.to_csv('{}_plus_{}.csv'.format(target, n_predictors),index=None)
 
     sys.exit()
 
