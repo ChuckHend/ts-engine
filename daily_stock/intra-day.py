@@ -10,14 +10,14 @@ import random, sys
 
 # call this script from command line
 # saves a transformed dataframe in .csv at the end of main()
-# to ./<target>_plus_<n_predictors>.csv
+# to ../../data/<target>_plus_<n_predictors>.csv
 
 def validateInput():
     if len(sys.argv) != 3:
         print('[ERROR] USAGE: python intra-day-prep.py <target> <n_predictors>')
         sys.exit()
     else:
-        return(str(sys.argv[1]), str(sys.argv[2]))     
+        return(str(sys.argv[1]), int(sys.argv[2]))     
 
 
 def prune_list(outcome, ticks, n_predictors):
@@ -26,6 +26,7 @@ def prune_list(outcome, ticks, n_predictors):
     # convert list of tickers to df so we can index
     df = pd.DataFrame(ticks)
     # randomly select the rows we want to take
+    random.seed(111)
     rows = random.sample(range(len(ticks)), n_predictors)
     # then select the rows subset
     df = df.iloc[rows]
@@ -35,7 +36,7 @@ def query_db(outcome, n_predictors):
 
     # setup engine to archbox psql database
     #arch_engine = create_engine("postgresql://<user>:<pass>@192.168.0.2:5432/sampalytics")
-    arch_engine = create_engine("postgresql://localhost@192.168.0.2:5432/sampalytics")
+    arch_engine = create_engine("postgresql://localhost:5432/sampalytics")
 
     # get list of tickers in our db
     tickers = arch_engine.engine.execute('SELECT DISTINCT ticker from stocks.minute').fetchall()
@@ -76,7 +77,7 @@ def main():
 
     df = query_db(outcome=target, n_predictors=n_predictors)
 
-    df.to_csv('{}_plus_{}.csv'.format(target, n_predictors),index=None)
+    df.to_csv('../../{}_plus_{}.csv'.format(target, n_predictors),index=None)
 
     sys.exit()
 

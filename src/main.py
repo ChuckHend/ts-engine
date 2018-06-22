@@ -36,7 +36,7 @@ ts_data.eng_features(derivate=False, weekdays=False)
 
 ts_data.roll_data()
 
-ts_data.data.to_csv('AMD_TS_DATA.csv',index=None)
+# ts_data.data.to_csv('AMD_TS_DATA.csv',index=None)
 
 ts_data.tscv(train=0.98)
 
@@ -44,7 +44,7 @@ ts_data.data.tail()
 
 ts_model = ts_lstm.lstm_model(ts_data, 
                                inlayer=int(ts_data.train_X.shape[-1])*2,
-                               hiddenlayers=0,
+                               hiddenlayers=[256],
                                loss_function='mae',
                                dropout=0.05,
                                activation='tanh',
