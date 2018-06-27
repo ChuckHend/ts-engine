@@ -37,21 +37,22 @@ class ts_data():
         features.append(self.target)
         self.features = list(features)
         self.data = self.data[self.features]
-
-    def roll_data(self):
+        # for memory saving, float is good
+        # self.data = self.data.astype(float)
+    def roll_data(self, train=True):
         print('\nProcessing: series_to_supervised()')
-        reframed = ps.series_to_supervised(self.data,
+        self.data = ps.series_to_supervised(self.data,
                                            features=self.features,
                                            n_in=self.n_in,
-                                           n_out=self.n_out)
-        print('\nProcessing: frame_targets()')
-        reframed = ps.frame_targets(reframed,
-                                    features=self.features,
-                                    n_out=self.n_out,
-                                    target=self.target)
-        print('\nTotal Supervised Learning Records: {}'.format(reframed.shape[0]))
-
-        self.data = reframed
+                                           n_out=self.n_out,
+                                           train=train)
+        if train:
+            print('\nProcessing: frame_targets()')
+            self.data = ps.frame_targets(self.data,
+                                        features=self.features,
+                                        n_out=self.n_out,
+                                        target=self.target)
+            print('\nTotal Supervised Learning Records: {}'.format(self.data.shape[0]))
 
     def tscv(self,train=0.95):
         # tscv - time series cross validation
@@ -67,3 +68,14 @@ class ts_data():
 
         self.test_X = ps.tensor_shape(test[:, :-self.n_out], self.n_in, self.features)
         self.test_y = test[:, -self.n_out:]
+        
+        del self.data
+
+
+    def tensor_shape(self):
+        # used for single predictions
+
+        #Shape data for LSTM input
+        '''tensor should be (t-2)a, (t-2)b, (t-1)a, (t-1)b, etc.
+         where a and b are features to properly reshape'''
+        self.test_X = self.data.values.reshape(self.data.shape[0], self.n_in, len(self.features))
