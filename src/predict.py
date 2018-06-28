@@ -2,10 +2,7 @@ from keras.models import load_model
 from ts_data.ts_data import ts_data as ts
 import pandas as pd
 import sys
-# n_in=10
-# n_out=10
-# ticker='AMD'
-# n_pred=6
+from ts_config import load_config as cfg
 
 def validateInput():
     if len(sys.argv) != 5:
@@ -37,20 +34,27 @@ def ts_transform(n_in, n_out, entityID, target, rawData):
     return ts_data
 
 def main():
-    ticker, n_in, n_out, n_pred = validateInput()
-    
+    # ticker, n_in, n_out, n_pred = validateInput()
+
     # load model
-    model = load_model('../models/lstm_{}_{}_{}.h5'.format(n_in, n_out, n_pred))
+    model = load_model('./models/lstm_{}_{}_{}.h5'.format(
+        cfg('n_in'), 
+        cfg('n_out'), 
+        cfg('n_pred')))
 
     # load new single record of data
-    df = pd.read_csv('../../data/{}_plus_{}.csv'.format(ticker, n_pred))
+    df = pd.read_csv('../data/{}_plus_{}.csv'.format(
+        cfg('target'), 
+        cfg('n_pred')))
 
-    target='close_{}'.format(ticker)
+    target = '{}_{}'.format(
+        cfg('outcome_variables'), 
+        cfg('target'))
 
     ts_data = ts_transform(
-        n_in=n_in, 
-        n_out=n_out, 
-        entityID=ticker, 
+        n_in=cfg('n_in'), 
+        n_out=cfg('n_out'), 
+        entityID=cfg('target'), 
         target=target, 
         rawData=df)
 
@@ -60,7 +64,10 @@ def main():
     # predict w/ new data
     yhat = model.predict(test_X.reshape(1, test_X.shape[-2], test_X.shape[-1]))
 
-    print('\nNext {} prices for {}\n'.format(n_out,ticker))
+    print('\nNext {} prices for {}\n'.format(
+        cfg('n_out'),
+        cfg('target')))
+
     print(yhat[0])
 
     sys.exit()

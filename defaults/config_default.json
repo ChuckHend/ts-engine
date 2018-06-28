@@ -1,0 +1,13 @@
+{	
+	"username" : "samp",
+	"host" : "localhost",
+	"port" : 5432,
+	"password" : "",
+	"database" : "sampalytics",
+	"aws-db" : "samp=db",
+	"n_in" : 361,
+	"n_out" : 361,
+	"n_pred" : 60,
+	"target" : "AMD",
+	"predictors" : ["close", "volume"]
+}

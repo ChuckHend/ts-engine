@@ -1,13 +1,12 @@
 import os
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1' # to disable GPU
 from ts_data.ts_data import ts_data as ts
-#import getStocks
-#import visualize
 import ts_models.predicts
 import pandas as pd
 import ts_models.ts_lstm as ts_lstm
 import numpy as np
 import time, sys
+from ts_config import load_config as cfg
 import pickle
 
 def validateInput():
@@ -47,8 +46,14 @@ def model_fit(ts_data):
 
 
     start = time.time()
+
+    debug = cfg('debug')
+    if debug:
+      epochs = 5
+    else:
+      epochs = 50
     history = ts_model.fit(ts_data.train_X, ts_data.train_y, 
-                        epochs=50, 
+                        epochs=epochs, 
                         batch_size=1024, 
                         validation_data=(ts_data.test_X, ts_data.test_y), 
                         verbose=2, 
@@ -65,35 +70,42 @@ def save_model(model, n_in, n_out, n_predictors):
 
 
 def main():
-    entity, n_in, n_out, n_pred = validateInput()
-
+    # entity, n_in, n_out, n_pred = validateInput()
+    entity = cfg('target')
+    n_pred = cfg('n_pred')
     data = pd.read_csv('../data/{}_plus_{}.csv'.format(entity, n_pred))
     ####
 
-    target = 'close_{}'.format(entity)
-    
+    target = '{}_{}'.format(
+      cfg('outcome_variables'),
+      cfg('target'))
+
     loadpkl=False
     if loadpkl:
-        print('Loading pickle')
-        data_obj = pickle.load(open('../data/ts_data.pkl','rb'))
+      print('Loading pickle')
+      data_obj = pickle.load(open('../data/ts_data.pkl','rb'))
     else:
-        data_obj = transform_data(
-            n_in=n_in, 
-            n_out=n_out, 
-            entityID=entity, 
-            target=target, 
-            dataset=data)
-	
+      data_obj = transform_data(
+        n_in=cfg('n_in'), 
+        n_out=cfg('n_out'), 
+        entityID=cfg('target'), 
+        target=target, 
+        dataset=data)
+
+    model = model_fit(data_obj)
+    
+    save_model(
+      model=model, 
+      n_in=cfg('n_in'), 
+      n_out=cfg('n_out'), 
+      n_predictors=cfg('n_pred'))
+
     AWS=False
     if AWS:
         print('Pickling ts_data.pkl')
         with open('ts_data.pkl', 'wb') as out:
             pickle.dump(data_obj,out,pickle.HIGHEST_PROTOCOL)
         sys.exit()
-
-    model = model_fit(data_obj)
-
-    save_model(model=model, n_in=n_in, n_out=n_out, n_predictors=n_pred)
 
     sys.exit()
 

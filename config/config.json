@@ -1,0 +1,17 @@
+{	
+	"workdir" : "/home/ahendel/Projects/forecast-engine",
+    "username" : "ahendel",
+	"host" : "192.168.0.2",
+	"port" : 5432,
+	"password" : "password",
+	"database" : "sampalytics",
+	"schema.table" : "stocks.minute",
+	"aws-db" : "samp=db",
+	"n_in" : 5,
+	"n_out" : 5,
+	"n_pred" : 5,
+	"target" : "AMD",
+	"outcome_variables": "close",
+	"predictor_variables" : ["close", "volume"],
+    "debug": true
+}

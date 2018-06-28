@@ -81,4 +81,4 @@ def plot_results_multiple(predicted_data, true_data, prediction_len, legend=True
 def plot_multiple(predicted_data, true_data,length):
     plt.plot(true_data.reshape(-1, 1)[length:])
     plt.plot(np.array(predicted_data).reshape(-1, 1)[length:])
-    plt.show()
+plt.show()
