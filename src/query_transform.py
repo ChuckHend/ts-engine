@@ -2,6 +2,7 @@ from sqlalchemy import *
 import pandas as pd
 import numpy as np
 import random, sys
+import os
 import ts_config as cfg
 
 # queries archbox or sql db for data
@@ -43,7 +44,7 @@ def query_db(outcome, n_predictors):
     port = cfg.load_config('port')
     database = cfg.load_config('database')
     schema_table = cfg.load_config('schema.table')
-    outcome_vars = cfg.load_config('outcome_variables')
+    predictor_vars = cfg.load_config('predictor_variables')
 
     debug = cfg.load_config('debug')
     connection_str = 'postgresql://{}:{}@{}:{}/{}'.format(user,passwd,host,port,database)
@@ -58,13 +59,15 @@ def query_db(outcome, n_predictors):
 
     # custom header
     full_df = pd.DataFrame(columns=['dtg'])
-    outcome_vars = ['close', 'volume'] # try less to save memory
     i = 1
     for ticker in tickers:
-        header = ['dtg'] + [x + '_' + str(ticker) for x in outcome_vars]
-        select=', '.join(['dtg'] + outcome_vars)
+        header = ['dtg'] + [x + '_' + str(ticker) for x in predictor_vars]
+        select = ', '.join(['dtg'] + predictor_vars)
         # d = arch_engine.engine.execute("SELECT DISTINCT dtg, open, high, low, close, volume from stocks.minute WHERE ticker='{}'".format(ticker)).fetchall()
-        d = arch_engine.engine.execute("SELECT DISTINCT {} from stocks.minute WHERE ticker='{}'".format(select, ticker)).fetchall()
+        d = arch_engine.engine.execute(
+            "SELECT DISTINCT {} from stocks.minute WHERE ticker='{}'".format(
+                select, 
+                ticker)).fetchall()
         d = pd.DataFrame(d, columns=header).dropna()
         print('Loading: {}: {}'.format(ticker, i))
         i = i + 1
@@ -85,6 +88,13 @@ def query_db(outcome, n_predictors):
 
     return full_df
 
+def check_make_dir(path):
+    if not os.path.exists(path):
+        try:
+            os.makedirs(path)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
 
 def main():
     # target, n_predictors = validateInput()
@@ -95,6 +105,8 @@ def main():
 
     df = query_db(outcome=target, n_predictors=n_predictors)
 
+    # make the '../data' directory if it does not exist
+    check_make_dir('./../data/')
     df.to_csv('{}/../data/{}_plus_{}.csv'.format(workdir, target, n_predictors),index=None)
 
     sys.exit()

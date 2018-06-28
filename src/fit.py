@@ -63,8 +63,23 @@ def model_fit(ts_data):
 
     return ts_model
 
+def check_make_dir(path):
+    if not os.path.exists(path):
+        try:
+            os.makedirs(path)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+
 def save_model(model, n_in, n_out, n_predictors):
-    modpath = 'models/lstm_{}_{}_{}.h5'.format(n_in, n_out, n_predictors)
+    model_folder = './models'
+    # make the 'models' folder if it does not exist
+    check_make_dir(model_folder)
+    modpath = '{}/lstm_{}_{}_{}.h5'.format(
+      model_folder,
+      n_in, 
+      n_out, 
+      n_predictors)
     model.save(modpath)
     print('Model saved to:\n {}'.format(modpath))
 

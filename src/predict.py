@@ -3,6 +3,7 @@ from ts_data.ts_data import ts_data as ts
 import pandas as pd
 import sys
 from ts_config import load_config as cfg
+import matplotlib.pyplot as plt
 
 def validateInput():
     if len(sys.argv) != 5:
@@ -34,8 +35,6 @@ def ts_transform(n_in, n_out, entityID, target, rawData):
     return ts_data
 
 def main():
-    # ticker, n_in, n_out, n_pred = validateInput()
-
     # load model
     model = load_model('./models/lstm_{}_{}_{}.h5'.format(
         cfg('n_in'), 
@@ -69,6 +68,13 @@ def main():
         cfg('target')))
 
     print(yhat[0])
+
+    if cfg('show_plot'):
+        plt.plot(yhat[0])
+        plt.title('Price Forecast')
+        plt.ylabel('Price')
+        plt.xlabel('Time')
+        plt.show()
 
     sys.exit()
 
