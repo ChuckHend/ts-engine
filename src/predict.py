@@ -68,7 +68,10 @@ def main():
         cfg('target')))
 
     print(yhat[0])
-
+    pd.DataFrame(yhat[0]).to_csv('../data/{}_results.csv'.format(cfg('target')),
+        header=None, 
+        index=None)
+    
     if cfg('show_plot'):
         plt.plot(yhat[0])
         plt.title('Price Forecast')

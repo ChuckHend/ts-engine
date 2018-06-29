@@ -1,13 +1,49 @@
 {	
-	"username" : "samp",
-	"host" : "localhost",
+	"workdir_desc" : "the full path to the directory forecast-engine is installed in",
+	"workdir" : "/mnt/ubudata/projects/forecast-engine-dash",
+
+	"username_desc" : "username used to access the source database",
+    "username" : "user",
+
+    "host_desc" : "host for source database",
+	"host" : "host",
+
+	"port_desc" : "port for source database",
 	"port" : 5432,
-	"password" : "",
+
+	"password_dsc" : "password for source database",
+	"password" : "password",
+
+	"database" : "name of the database in source database",
 	"database" : "sampalytics",
-	"aws-db" : "samp=db",
-	"n_in" : 361,
-	"n_out" : 361,
-	"n_pred" : 60,
+
+	"schema.table_desc" : "scheme and table containing the data",
+	"schema.table" : "stocks.minute",
+
+	"aws-ds_desc" : "aws rds identifier for the database",
+	"aws-db" : "samp-db",
+
+	"n_in_desc" : "the number of time steps to use as an input sequence",
+	"n_in" : 180,
+
+	"n_out_desc" : "the number of time steps to predict into the future",
+	"n_out" : 180,
+
+	"n_pred_desc" : "number of other stocks to use as supporting regressors",
+	"n_pred" : 2,
+
+	"target_desc" : "the ticker of the stock you want to predict prices for",
 	"target" : "AMD",
-	"predictors" : ["close", "volume"]
+
+	"outcome_var_desc" : "the variable in the dataset that you want to predict, currently only accepts one",
+	"outcome_variables" : "close",
+
+	"predictor_var_desc" : "the variables you want to use to predict the outcome variable accepts a list of values. Also called the independent variables, input variables",
+	"predictor_variables" : ["close", "volume"],
+
+	"debug_desc" : "set to true to limit the amount of data queried",
+    "debug": true,
+
+    "show_plot_desc" : "set to true if you have access to visualization",
+    "show_plot" : false
 }

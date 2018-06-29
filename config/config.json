@@ -45,5 +45,5 @@
     "debug": true,
 
     "show_plot_desc" : "set to true if you have access to visualization",
-    "show_plot" : true
+    "show_plot" : false
 }
