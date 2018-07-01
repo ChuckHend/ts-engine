@@ -46,6 +46,11 @@ def main():
         cfg('target'), 
         cfg('n_pred')))
 
+    target_var = '{}_{}'.format(cfg('outcome_variables'), cfg('target'))
+    df[['Date',target_var]].tail(391).to_csv(
+        '{}/models/input_dates.csv'.format(cfg('workdir')),
+        index=None)
+
     target = '{}_{}'.format(
         cfg('outcome_variables'), 
         cfg('target'))

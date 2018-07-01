@@ -1,6 +1,6 @@
 {	
 	"workdir_desc" : "the full path to the directory forecast-engine is installed in",
-	"workdir" : "/mnt/ubudata/projects/forecast-engine-dash",
+	"workdir" : "/path/to/forecast-engine",
 
 	"username_desc" : "username used to access the source database",
     "username" : "user",
@@ -24,10 +24,10 @@
 	"aws-db" : "samp-db",
 
 	"n_in_desc" : "the number of time steps to use as an input sequence",
-	"n_in" : 180,
+	"n_in" : 5,
 
 	"n_out_desc" : "the number of time steps to predict into the future",
-	"n_out" : 180,
+	"n_out" : 5,
 
 	"n_pred_desc" : "number of other stocks to use as supporting regressors",
 	"n_pred" : 2,

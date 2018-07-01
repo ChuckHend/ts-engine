@@ -7,6 +7,7 @@ from dash.dependencies import Input, Output, State
 import subprocess
 import matplotlib.pyplot as plt
 import pandas as pd
+import plotly.graph_objs as go
 
 app = dash.Dash()
 
@@ -38,7 +39,7 @@ app.layout = html.Div([
     html.Button('Predict', id='predict'),
 
     # place holder for output from predict
-    html.Div(id='output')
+    html.Div(dcc.Graph(id='output'))
 
 
 
@@ -47,7 +48,7 @@ app.layout = html.Div([
 
 
 @app.callback(
-    Output('output', 'children'),
+    Output('output', 'figure'),
     [Input('ticker','value'),
      Input('predict', 'n_clicks')])
 def predict(ticker, clicks):
@@ -56,13 +57,55 @@ def predict(ticker, clicks):
         new_config = {'target' : ticker}
         save_config(new_config)
         subprocess.call(['python3', 'main.py'])
-        results = pd.read_csv('../data/{}_results.csv'.format(ticker), header=None)
 
-        fig = dcc.Graph(id='output',
-            figure = {
-            'data': [
-                {'y': results[0], 'type': 'line'}]
-            })
+        results = pd.read_csv('../data/{}_results.csv'.format(ticker), header=None)
+        
+        
+        #fig = dcc.Graph(id='output',
+        #    figure = {
+        #    'data': [
+        #        {'y': results[0], 'type': 'line'}],
+        #    })
+        # TODO: label x axis with dates/times
+        history = pd.read_csv('./models/input_dates.csv')
+        history_x = [x for x in range(history.shape[0])]
+
+        prediction_x = [x+history.shape[0] for x in range(results.shape[0])]
+
+        line0 = go.Scatter(
+            x=history_x,
+            y=history.iloc[:,1],
+            name='historical')
+
+        line1 = go.Scatter(
+            x=prediction_x,
+            y=results[0],
+            name='prediction'
+        )
+
+
+        data = [line0, line1]
+
+        layout = go.Layout(
+            title='Stock Prediction for {}'.format(ticker),
+            xaxis=dict(
+                title='Time of day',
+                titlefont=dict(
+                    family='Courier New, monospace',
+                    size=18,
+                    color='#7f7f7f'
+                )
+            ),
+            yaxis=dict(
+                title='Price (USD)',
+                titlefont=dict(
+                    family='Courier New, monospace',
+                    size=18,
+                    color='#7f7f7f'
+                )
+            )
+        )
+        fig = go.Figure(data=data, layout=layout)
 
         return fig
 
