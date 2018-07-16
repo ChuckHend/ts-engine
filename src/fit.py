@@ -39,7 +39,7 @@ def transform_data(n_in, n_out, entityID, target, dataset):
 def model_fit(ts_data):
     early_stopping = EarlyStopping(
       monitor='val_loss',
-      min_delta=.05,
+      min_delta=cfg('early_stop_delta'),
       patience=3,
       mode='min'
       )
