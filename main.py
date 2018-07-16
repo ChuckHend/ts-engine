@@ -8,8 +8,10 @@ def main():
     print(os.getcwd())
     sys.path.append(workdir)
 
-    print('Gathering data')
-    subprocess.call(['python3', 'src/query_transform.py'])
+    if not config.load_config('load_transformed'):
+        print('Gathering data')
+        subprocess.call(['python3', 'src/query_transform.py'])
+    
     print('Beginning Transformation and Fit')
     subprocess.call(['python3', 'src/fit.py'])
 

@@ -8,6 +8,7 @@ import numpy as np
 import time, sys
 from ts_config import load_config as cfg
 import pickle
+from keras.callbacks import EarlyStopping
 
 def validateInput():
     if len(sys.argv) != 5:
@@ -36,14 +37,23 @@ def transform_data(n_in, n_out, entityID, target, dataset):
     return ts_data
 
 def model_fit(ts_data):
-    ts_model = ts_lstm.lstm_model(ts_data, 
-                                 inlayer=int(ts_data.train_X.shape[-1])*2,
-                                 hiddenlayers=[256],
-                                 loss_function='mae',
-                                 dropout=0.05,
-                                 activation='tanh',
-                                 gpus=1)
+    early_stopping = EarlyStopping(
+      monitor='val_loss',
+      min_delta=.05,
+      patience=3,
+      mode='min'
+      )
 
+    num_gpu = cfg('num_gpu')
+
+    ts_model = ts_lstm.lstm_model(
+      ts_data, 
+      inlayer=int(ts_data.train_X.shape[-1])*2,
+      hiddenlayers=[256],
+      loss_function='mae',
+      dropout=0.15,
+      activation='tanh',
+      gpus=num_gpu)
 
     start = time.time()
 
@@ -51,13 +61,16 @@ def model_fit(ts_data):
     if debug:
       epochs = 5
     else:
-      epochs = 50
-    history = ts_model.fit(ts_data.train_X, ts_data.train_y, 
-                        epochs=epochs, 
-                        batch_size=1024, 
-                        validation_data=(ts_data.test_X, ts_data.test_y), 
-                        verbose=2, 
-                        shuffle=False)
+      epochs = 150
+    history = ts_model.fit(
+      ts_data.train_X, ts_data.train_y,
+      epochs=epochs, 
+      batch_size=1024, 
+      validation_data=(ts_data.test_X, ts_data.test_y),
+      verbose=2, 
+      shuffle=False,
+      callbacks=[early_stopping]
+      )
     fitTime = time.time()-start
     print('Fit Time: {}'.format(round(fitTime,2)))
 
@@ -85,21 +98,18 @@ def save_model(model, n_in, n_out, n_predictors):
 
 
 def main():
-    # entity, n_in, n_out, n_pred = validateInput()
-    entity = cfg('target')
-    n_pred = cfg('n_pred')
-    data = pd.read_csv('../data/{}_plus_{}.csv'.format(entity, n_pred))
-    ####
-
-    target = '{}_{}'.format(
-      cfg('outcome_variables'),
-      cfg('target'))
-
-    loadpkl=False
+    loadpkl=cfg('load_transformed')
     if loadpkl:
-      print('Loading pickle')
-      data_obj = pickle.load(open('../data/ts_data.pkl','rb'))
+        print('Loading pickle')
+        data_obj = pickle.load(open('src/ts_data/ts_data.pkl','rb'))
+
     else:
+      target = '{}_{}'.format(
+        cfg('outcome_variables'),
+        cfg('target'))
+      entity = cfg('target')
+      n_pred = cfg('n_pred')
+      data = pd.read_csv('../data/{}_plus_{}.csv'.format(entity, n_pred))
       data_obj = transform_data(
         n_in=cfg('n_in'), 
         n_out=cfg('n_out'), 

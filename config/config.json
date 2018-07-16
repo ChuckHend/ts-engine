@@ -1,9 +1,9 @@
 {   
     "workdir_desc" : "the full path to the directory forecast-engine is installed in",
-    "workdir" : "/path/to/forecast-engine",
+    "workdir" : "/mnt/ubudata/projects/forecast-engine",
 
     "username_desc" : "username used to access the source database",
-    "username" : "user",
+    "username" : "username",
 
     "host_desc" : "host for source database",
     "host" : "host",
@@ -24,10 +24,10 @@
     "aws-db" : "samp-db",
 
     "n_in_desc" : "the number of time steps to use as an input sequence",
-    "n_in" : 5,
+    "n_in" : 180,
 
     "n_out_desc" : "the number of time steps to predict into the future",
-    "n_out" : 5,
+    "n_out" : 60,
 
     "n_pred_desc" : "number of other stocks to use as supporting regressors",
     "n_pred" : 2,
@@ -42,8 +42,16 @@
     "predictor_variables" : ["close", "volume"],
 
     "debug_desc" : "set to true to limit the amount of data queried",
-    "debug": true,
+    "debug": false,
 
     "show_plot_desc" : "set to true if you have access to visualization",
-    "show_plot" : false
+    "show_plot" : true,
+
+    "load_transformed_desc" : "load a data object that has already been transformed, in ts_data directory. Options: name of pkl or false",
+    "load_transformed" : false,
+
+    "num_gpu" : 1,
+
+    "early_stop_delta_desc" : "model fit will stop when val_loss does not improve by this much for 3 consecutiveitererations",
+    "early_stop_delta" : 0.01
 }

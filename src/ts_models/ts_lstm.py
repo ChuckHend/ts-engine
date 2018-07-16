@@ -8,10 +8,18 @@ from keras.layers.core import Dense, Dropout
 from keras.layers.recurrent import LSTM
 from keras.models import Sequential
 from keras.utils import multi_gpu_model
+from ts_config import load_config as cfg
+import os
 
-def lstm_model(dataObj, batch_size=None, inlayer=20, hiddenlayers=0, dropout=0.3,
-                loss_function='mean_absolute_percentage_error',
-                activation='tanh',gpus=1):
+if not cfg('num_gpu'):
+    # to disable GPU
+    os.environ['CUDA_VISIBLE_DEVICES'] = '-1' 
+
+def lstm_model(
+    dataObj, batch_size=None, 
+    inlayer=20, hiddenlayers=0, 
+    dropout=0.2,loss_function='mean_absolute_percentage_error',
+    activation='tanh',gpus=1):
     # outlayer is the number of predictions, days to predict
     # to run through before updating the weights
     # timesteps is the length of times, or length of the sequences
